@@ -1,0 +1,2798 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Planeaciones Comunitarias (demo)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+/* ════════════════════════════════════════════════════════════════════════
+   Styles.html · Hoja de estilos modular.
+
+   Para adaptar una plantilla web externa (Coso, Bootstrap, Tailwind, etc.)
+   basta con redefinir los tokens del bloque :root. Las clases de estructura
+   (.topbar, .tarjeta, .btn, .editor…) no dependen de ningún framework.
+   ════════════════════════════════════════════════════════════════════════ */
+
+:root{
+  /* ---- Marca (sustituye estos 6 valores por los de tu plantilla) ------- */
+  --marca:            #E5397F;
+  --marca-oscura:     #B81F5F;
+  --marca-clara:      #FF7FB1;
+  --marca-tenue:      #FDE7F0;
+  --acento:           #6C5CE7;
+  --acento-tenue:     #EFECFF;
+
+  /* ---- Superficies y texto -------------------------------------------- */
+  --fondo:            #FFF6FA;
+  --fondo-alt:        #FFFFFF;
+  --superficie:       #FFFFFF;
+  --superficie-2:     #FCF7FA;
+  --texto:            #221A28;
+  --texto-suave:      #6B6577;
+  --texto-tenue:      #9A94A6;
+  --borde:            #F0E2EA;
+  --borde-fuerte:     #DCC9D6;
+
+  /* ---- Estados --------------------------------------------------------- */
+  --ok:               #12A594;
+  --ok-tenue:         #E2F7F3;
+  --alerta:           #E8A33D;
+  --alerta-tenue:     #FDF3E3;
+  --error:            #E0464E;
+  --error-tenue:      #FCE9EA;
+
+  /* ---- Formas ---------------------------------------------------------- */
+  --r-xs: 8px;  --r-sm: 12px;  --r-md: 18px;  --r-lg: 26px;  --r-full: 999px;
+  --sombra-sm: 0 2px 8px rgba(96, 36, 66, .06);
+  --sombra:    0 10px 30px rgba(96, 36, 66, .08);
+  --sombra-lg: 0 24px 60px rgba(96, 36, 66, .16);
+
+  /* ---- Tipografía ------------------------------------------------------ */
+  --fuente-titulo: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fuente-texto:  'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  --barra-sup: 68px;
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+
+html,body{ margin:0; padding:0; }
+
+body{
+  font-family:var(--fuente-texto);
+  color:var(--texto);
+  background:
+    radial-gradient(1100px 520px at 88% -8%, var(--marca-tenue) 0%, transparent 62%),
+    radial-gradient(760px 420px at -6% 8%, var(--acento-tenue) 0%, transparent 58%),
+    var(--fondo);
+  min-height:100vh;
+  font-size:15px;
+  line-height:1.55;
+  -webkit-font-smoothing:antialiased;
+}
+
+h1,h2,h3,h4{ font-family:var(--fuente-titulo); margin:0; line-height:1.2; }
+p{ margin:0 0 .6rem; }
+code{
+  font-family:ui-monospace,'SFMono-Regular',Consolas,monospace;
+  background:var(--marca-tenue); color:var(--marca-oscura);
+  padding:1px 6px; border-radius:6px; font-size:.86em;
+}
+.ico{ font-style:normal; }
+
+/* ══════════════════════════════════════════════════════════════ Botones */
+
+.btn{
+  display:inline-flex; align-items:center; gap:.45rem;
+  font-family:var(--fuente-titulo); font-weight:600; font-size:.86rem;
+  padding:.6rem 1.05rem; border-radius:var(--r-full);
+  border:1.5px solid transparent; background:transparent; color:var(--texto);
+  cursor:pointer; white-space:nowrap;
+  transition:transform .14s ease, box-shadow .18s ease, background .18s ease, color .18s ease;
+}
+.btn:hover{ transform:translateY(-1px); }
+.btn:active{ transform:translateY(0); }
+.btn:focus-visible{ outline:3px solid var(--marca-clara); outline-offset:2px; }
+.btn[disabled]{ opacity:.5; cursor:not-allowed; transform:none; }
+
+.btn--primary{ background:var(--marca); color:#fff; box-shadow:0 8px 22px rgba(229,57,127,.28); }
+.btn--primary:hover{ background:var(--marca-oscura); }
+
+.btn--secundario{ background:var(--acento); color:#fff; }
+.btn--secundario:hover{ background:#5548c8; }
+
+.btn--ghost{ background:var(--superficie); border-color:var(--borde); color:var(--texto-suave); }
+.btn--ghost:hover{ border-color:var(--marca-clara); color:var(--marca-oscura); }
+
+.btn--grande{ padding:.85rem 1.7rem; font-size:.95rem; }
+
+.btn--mini{
+  padding:.4rem .7rem; font-size:.76rem; border-radius:var(--r-xs);
+  background:var(--superficie); border-color:var(--borde); color:var(--texto-suave);
+}
+.btn--mini:hover{ border-color:var(--marca-clara); color:var(--marca-oscura); }
+
+.btn--icono{
+  width:34px; height:34px; padding:0; justify-content:center;
+  border-radius:var(--r-full); color:var(--texto-suave);
+}
+.btn--icono:hover{ background:var(--marca-tenue); color:var(--marca-oscura); }
+
+.btn--peligro{ color:var(--error); border-color:var(--error-tenue); background:var(--error-tenue); }
+
+/* ═════════════════════════════════════════════════════════ Barra superior */
+
+.topbar{
+  position:sticky; top:0; z-index:40;
+  height:var(--barra-sup);
+  display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  padding:0 clamp(1rem, 3vw, 2.2rem);
+  background:rgba(255,255,255,.82);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--borde);
+}
+.topbar__brand{ display:flex; align-items:center; gap:.8rem; min-width:0; }
+
+.brand-mark{
+  width:38px; height:38px; flex:none; border-radius:12px 12px 12px 4px;
+  background:linear-gradient(135deg, var(--marca) 0%, var(--marca-clara) 55%, var(--acento) 100%);
+  box-shadow:0 6px 18px rgba(229,57,127,.32);
+}
+.brand-name{ font-size:1.02rem; font-weight:700; letter-spacing:-.01em; }
+.brand-name span{ color:var(--marca); }
+.brand-tag{ margin:0; font-size:.72rem; color:var(--texto-tenue); }
+
+.topbar__actions{ display:flex; align-items:center; gap:.5rem; flex-wrap:wrap; justify-content:flex-end; }
+
+/* ══════════════════════════════════════════════════════════════ Stepper */
+
+.stepper{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:.6rem;
+  max-width:1180px; margin:1.5rem auto .4rem; padding:0 clamp(1rem,3vw,2rem);
+}
+.step{
+  display:flex; align-items:center; gap:.7rem; text-align:left;
+  padding:.7rem .9rem; border-radius:var(--r-md);
+  background:var(--superficie); border:1.5px solid var(--borde);
+  cursor:pointer; font:inherit; color:var(--texto-suave);
+  transition:border-color .2s ease, box-shadow .2s ease, background .2s ease;
+}
+.step:hover{ border-color:var(--marca-clara); }
+.step__num{
+  width:30px; height:30px; flex:none; border-radius:var(--r-full);
+  display:grid; place-items:center;
+  background:var(--marca-tenue); color:var(--marca-oscura);
+  font-family:var(--fuente-titulo); font-weight:700; font-size:.85rem;
+}
+.step__txt{ display:flex; flex-direction:column; min-width:0; }
+.step__txt b{ font-family:var(--fuente-titulo); font-size:.86rem; color:var(--texto); }
+.step__txt small{ font-size:.71rem; color:var(--texto-tenue); }
+
+.step.is-active{ background:var(--superficie); border-color:var(--marca); box-shadow:var(--sombra-sm); }
+.step.is-active .step__num{ background:var(--marca); color:#fff; }
+.step.is-done .step__num{ background:var(--ok-tenue); color:var(--ok); }
+.step.is-done .step__num::after{ content:'✓'; }
+.step.is-done .step__num{ font-size:0; }
+.step.is-done .step__num::after{ font-size:.9rem; }
+
+/* ═══════════════════════════════════════════════════════════════ Lienzo */
+
+.lienzo{ max-width:1180px; margin:0 auto; padding:1rem clamp(1rem,3vw,2rem) 5rem; }
+.lienzo:has(#vista-3.is-active){ max-width:1560px; }
+
+.vista{ display:none; animation:aparecer .32s ease; }
+.vista.is-active{ display:block; }
+@keyframes aparecer{ from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:none;} }
+
+.tarjeta{
+  background:var(--superficie); border:1px solid var(--borde);
+  border-radius:var(--r-lg); box-shadow:var(--sombra);
+  padding:clamp(1.1rem,2.4vw,1.9rem);
+}
+
+.encabezado-vista{
+  display:flex; align-items:flex-end; justify-content:space-between;
+  gap:1rem; flex-wrap:wrap; margin:.6rem 0 1.2rem;
+}
+.encabezado-vista h2{ font-size:1.5rem; }
+.encabezado-vista__acciones{ display:flex; gap:.5rem; flex-wrap:wrap; }
+.sub{ color:var(--texto-suave); font-size:.9rem; margin:.3rem 0 0; max-width:70ch; }
+
+/* ═════════════════════════════════════════════════════════════════ Hero */
+
+.hero{
+  position:relative; overflow:hidden;
+  display:flex; align-items:center; gap:2rem;
+  border-radius:var(--r-lg); margin:.6rem 0 1.4rem;
+  padding:clamp(1.4rem,3vw,2.4rem);
+  background:linear-gradient(120deg, #fff 0%, var(--marca-tenue) 100%);
+  border:1px solid var(--borde);
+}
+.hero__texto{ position:relative; z-index:1; max-width:62ch; }
+.hero h2{ font-size:clamp(1.4rem,2.6vw,2rem); margin:.6rem 0 .5rem; letter-spacing:-.02em; }
+.hero p{ color:var(--texto-suave); font-size:.95rem; margin:0; }
+
+.hero__blob{
+  position:absolute; right:-70px; top:-70px; width:300px; height:300px;
+  background:radial-gradient(circle at 35% 35%, var(--marca-clara), var(--marca) 70%);
+  opacity:.22; border-radius:48% 52% 40% 60% / 55% 42% 58% 45%;
+  animation:flotar 14s ease-in-out infinite;
+}
+@keyframes flotar{
+  0%,100%{ transform:translate(0,0) rotate(0deg); }
+  50%    { transform:translate(-18px,16px) rotate(12deg); }
+}
+
+.pill{
+  display:inline-block; padding:.32rem .85rem; border-radius:var(--r-full);
+  background:var(--superficie); border:1px solid var(--marca-clara);
+  color:var(--marca-oscura); font-size:.74rem; font-weight:600;
+  font-family:var(--fuente-titulo);
+}
+
+/* ════════════════════════════════════════════════════════════ Formulario */
+
+.form-grid{ display:grid; grid-template-columns:repeat(4,1fr); gap:1rem 1.1rem; }
+.campo{ display:flex; flex-direction:column; gap:.35rem; min-width:0; }
+.campo--ancho{ grid-column:1 / -1; }
+
+.campo > label, .campo > span{
+  font-family:var(--fuente-titulo); font-weight:600; font-size:.79rem; color:var(--texto);
+}
+.campo small{ font-size:.72rem; color:var(--texto-tenue); }
+.req{ color:var(--marca); }
+
+input[type=text], input[type=number], input[type=password], input[type=search],
+select, textarea{
+  width:100%; font:inherit; font-size:.88rem; color:var(--texto);
+  padding:.6rem .8rem; border-radius:var(--r-sm);
+  border:1.5px solid var(--borde); background:var(--fondo-alt);
+  transition:border-color .16s ease, box-shadow .16s ease;
+}
+textarea{ resize:vertical; line-height:1.5; }
+input:focus, select:focus, textarea:focus{
+  outline:none; border-color:var(--marca);
+  box-shadow:0 0 0 4px rgba(229,57,127,.12);
+}
+input[type=color]{
+  padding:2px; height:34px; cursor:pointer;
+  border:1.5px solid var(--borde); border-radius:var(--r-xs); background:var(--fondo-alt);
+}
+
+.campo--inline{ flex-direction:row; align-items:center; gap:.5rem; }
+.campo--inline select{ width:auto; }
+.campo--mini{ flex-direction:row; align-items:center; justify-content:space-between; gap:.6rem; }
+.campo--mini span{ font-size:.75rem; color:var(--texto-suave); flex:none; }
+.campo--mini input, .campo--mini select{ width:56%; padding:.35rem .5rem; font-size:.8rem; }
+
+.select-mini{ width:auto; padding:.4rem .6rem; font-size:.78rem; border-radius:var(--r-xs); }
+
+.acciones{ display:flex; gap:.7rem; flex-wrap:wrap; margin-top:1.2rem; }
+.acciones--fin{ justify-content:flex-end; }
+
+.check{ display:flex; align-items:center; gap:.5rem; font-size:.85rem; color:var(--texto-suave); }
+.check input{ width:auto; accent-color:var(--marca); }
+
+.chip{
+  display:inline-flex; align-items:center; gap:.4rem;
+  padding:.35rem .8rem; border-radius:var(--r-full);
+  background:var(--superficie-2); border:1px solid var(--borde);
+  font-size:.76rem; color:var(--texto-suave); font-weight:500;
+}
+.chip--tiempo{ background:var(--marca-tenue); border-color:var(--marca-clara); color:var(--marca-oscura); }
+.resumen-tiempo{ flex-direction:row; gap:.6rem; flex-wrap:wrap; }
+
+/* ═══════════════════════════════════════════════════ Panel de tiempos */
+
+.panel-tiempos{ display:grid; gap:1rem; margin-bottom:1.3rem; }
+.panel-tiempos__cifras{ display:grid; grid-template-columns:repeat(4,1fr); gap:.8rem; }
+.cifra{
+  text-align:center; padding:.8rem .5rem; border-radius:var(--r-md);
+  background:var(--superficie-2); border:1px solid var(--borde);
+}
+.cifra b{ display:block; font-family:var(--fuente-titulo); font-size:1.55rem; color:var(--marca); line-height:1.1; }
+.cifra small{ font-size:.72rem; color:var(--texto-tenue); }
+
+.panel-tiempos__controles{ display:flex; align-items:center; gap:.8rem; flex-wrap:wrap; }
+
+.barra-fases{ display:flex; height:34px; border-radius:var(--r-full); overflow:hidden; border:1px solid var(--borde); }
+.barra-fases__seg{
+  display:grid; place-items:center; font-size:.72rem; font-weight:600; color:#fff;
+  min-width:0; overflow:hidden; white-space:nowrap; transition:flex-grow .4s ease;
+}
+.barra-fases__seg:nth-child(1){ background:var(--marca); }
+.barra-fases__seg:nth-child(2){ background:var(--acento); }
+.barra-fases__seg:nth-child(3){ background:var(--ok); }
+
+.filtros{ display:flex; gap:.5rem; flex-wrap:wrap; margin-bottom:1rem; }
+.filtro{
+  padding:.4rem .95rem; border-radius:var(--r-full); cursor:pointer;
+  border:1.5px solid var(--borde); background:var(--superficie);
+  font-family:var(--fuente-titulo); font-size:.79rem; font-weight:600; color:var(--texto-suave);
+}
+.filtro.is-active{ background:var(--marca); border-color:var(--marca); color:#fff; }
+
+/* ═══════════════════════════════════════════════ Momentos y actividades */
+
+.lista-momentos{ display:grid; gap:1rem; }
+
+.momento{
+  background:var(--superficie); border:1px solid var(--borde);
+  border-radius:var(--r-lg); overflow:hidden; box-shadow:var(--sombra-sm);
+}
+.momento__head{
+  display:flex; align-items:center; gap:.8rem; flex-wrap:wrap;
+  padding:.85rem 1.1rem; background:var(--superficie-2);
+  border-bottom:1px solid var(--borde); cursor:pointer;
+}
+.momento__fase{
+  font-size:.68rem; font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  padding:.2rem .6rem; border-radius:var(--r-full);
+  background:var(--marca-tenue); color:var(--marca-oscura);
+}
+.momento__fase[data-fase="Acción"]{ background:var(--acento-tenue); color:var(--acento); }
+.momento__fase[data-fase="Intervención"]{ background:var(--ok-tenue); color:var(--ok); }
+.momento__titulo{ font-family:var(--fuente-titulo); font-weight:600; font-size:.98rem; }
+.momento__meta{ margin-left:auto; display:flex; gap:.5rem; align-items:center; }
+.momento__cuerpo{ display:grid; gap:.8rem; padding:1rem 1.1rem; }
+.momento__proposito{ font-size:.83rem; color:var(--texto-suave); margin:0; }
+.momento.is-cerrado .momento__cuerpo{ display:none; }
+
+.tarjetas-act{ display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:.85rem; }
+
+.act{
+  position:relative; display:flex; flex-direction:column; gap:.5rem;
+  padding:.95rem 1rem; border-radius:var(--r-md);
+  border:1.5px solid var(--borde); background:var(--fondo-alt);
+  transition:border-color .18s ease, box-shadow .18s ease, opacity .18s ease;
+}
+.act.is-on{ border-color:var(--marca); box-shadow:0 6px 18px rgba(229,57,127,.12); }
+.act.is-off{ opacity:.5; }
+.act__head{ display:flex; align-items:flex-start; gap:.6rem; }
+.act__check{ accent-color:var(--marca); width:17px; height:17px; margin-top:2px; flex:none; cursor:pointer; }
+.act__titulo{ font-family:var(--fuente-titulo); font-weight:600; font-size:.9rem; line-height:1.35; }
+.act__desc{ font-size:.82rem; color:var(--texto-suave); margin:0; }
+.act__pies{ display:flex; align-items:center; gap:.45rem; flex-wrap:wrap; margin-top:auto; padding-top:.3rem; }
+.act__min{ width:74px; }
+.etiqueta{
+  font-size:.7rem; padding:.15rem .55rem; border-radius:var(--r-full);
+  background:var(--superficie-2); border:1px solid var(--borde); color:var(--texto-tenue);
+}
+.etiqueta--com{ background:var(--ok-tenue); border-color:var(--ok-tenue); color:var(--ok); }
+
+/* ═════════════════════════════════════════════════════════════ Editor */
+
+.editor{
+  display:grid;
+  grid-template-columns:264px minmax(0,1fr) 288px;
+  gap:1rem; align-items:start;
+}
+
+.paleta, .props{
+  position:sticky; top:calc(var(--barra-sup) + 12px);
+  max-height:calc(100vh - var(--barra-sup) - 40px);
+  overflow:auto;
+  background:var(--superficie); border:1px solid var(--borde);
+  border-radius:var(--r-md); box-shadow:var(--sombra-sm);
+}
+.paleta{ padding:.8rem; }
+.paleta__buscador{ margin-bottom:.7rem; }
+.paleta__lista{ display:grid; gap:.9rem; }
+.paleta__ayuda{ font-size:.72rem; color:var(--texto-tenue); margin:.9rem 0 0; }
+
+.grupo-bloques h4{
+  font-size:.7rem; text-transform:uppercase; letter-spacing:.07em;
+  color:var(--texto-tenue); margin:0 0 .4rem;
+}
+.grupo-bloques__items{ display:grid; gap:.35rem; }
+
+.bloque{
+  display:flex; align-items:center; gap:.5rem;
+  padding:.5rem .65rem; border-radius:var(--r-xs);
+  background:var(--superficie-2); border:1.5px solid var(--borde);
+  font-size:.79rem; cursor:grab; user-select:none;
+  transition:border-color .15s ease, transform .12s ease, background .15s ease;
+}
+.bloque:hover{ border-color:var(--marca-clara); background:var(--marca-tenue); }
+.bloque:active{ cursor:grabbing; }
+.bloque.is-dragging{ opacity:.45; transform:scale(.97); }
+.bloque__icono{ flex:none; font-size:.95rem; }
+.bloque__nombre{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bloque.is-usado{ border-style:dashed; opacity:.68; }
+
+/* ─────────────────────────────────────────────── Tablero de la rejilla */
+
+.tablero{
+  background:var(--superficie); border:1px solid var(--borde);
+  border-radius:var(--r-md); box-shadow:var(--sombra-sm); overflow:hidden;
+}
+.tablero__barra{
+  display:flex; align-items:center; gap:.8rem; flex-wrap:wrap;
+  padding:.6rem .8rem; border-bottom:1px solid var(--borde); background:var(--superficie-2);
+}
+.grupo-btn{ display:flex; gap:.35rem; flex-wrap:wrap; }
+.grupo-btn--fin{ margin-left:auto; }
+
+.tablero__scroll{ overflow:auto; padding:1rem; max-height:66vh; }
+
+.rejilla{ border-collapse:collapse; width:100%; table-layout:fixed; }
+.rejilla td{
+  border:1.5px solid var(--borde-fuerte);
+  vertical-align:top; padding:0;
+  min-width:130px; position:relative;
+}
+.celda{
+  min-height:74px; padding:.5rem .55rem; font-size:.78rem;
+  display:flex; flex-direction:column; gap:.35rem; cursor:pointer;
+  transition:background .15s ease, box-shadow .15s ease;
+}
+.celda.is-sel{ box-shadow:inset 0 0 0 2.5px var(--marca); background:var(--marca-tenue); }
+.celda.is-drop{ background:var(--acento-tenue); box-shadow:inset 0 0 0 2.5px var(--acento); }
+.celda.es-encabezado{ background:var(--marca-tenue); font-weight:600; }
+
+.celda__texto{
+  font-size:.76rem; color:var(--texto); white-space:pre-wrap; word-break:break-word;
+  outline:none; min-height:1em;
+}
+.celda__texto:empty::before{
+  content:'Escribe o suelta un bloque…'; color:var(--texto-tenue); font-style:italic;
+}
+.celda__fichas{ display:flex; flex-wrap:wrap; gap:.3rem; }
+.ficha{
+  display:inline-flex; align-items:center; gap:.3rem;
+  padding:.16rem .45rem; border-radius:var(--r-full);
+  background:var(--acento-tenue); color:var(--acento);
+  font-size:.68rem; font-weight:600; max-width:100%;
+}
+.ficha span{ overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.ficha button{
+  border:none; background:none; cursor:pointer; color:inherit;
+  font-size:.8rem; line-height:1; padding:0 0 0 2px; opacity:.6;
+}
+.ficha button:hover{ opacity:1; }
+
+/* ────────────────────────────────────────────── Panel de propiedades */
+
+.props__seccion{ border-bottom:1px solid var(--borde); }
+.props__seccion:last-child{ border-bottom:none; }
+.props__seccion h3{
+  font-size:.76rem; text-transform:uppercase; letter-spacing:.06em;
+  color:var(--texto-tenue); padding:.8rem .9rem .4rem; margin:0;
+}
+.props__cuerpo{ display:grid; gap:.5rem; padding:0 .9rem .9rem; }
+.vacio{ color:var(--texto-tenue); font-size:.8rem; font-style:italic; margin:0; }
+
+.props__fila{ display:flex; gap:.4rem; flex-wrap:wrap; }
+
+/* ═══════════════════════════════════════════════════════ Vista previa */
+
+.previa{
+  margin-top:1.4rem; padding:2rem; background:#fff;
+  border:1px solid var(--borde); border-radius:var(--r-sm);
+  box-shadow:var(--sombra); overflow:auto;
+}
+.previa__titulo{
+  text-align:center; font-family:var(--fuente-titulo);
+  text-transform:uppercase; margin-bottom:1rem;
+}
+.previa table{ border-collapse:collapse; width:100%; margin-bottom:1rem; table-layout:fixed; }
+.previa td{ vertical-align:top; padding:5px 7px; font-size:11px; word-break:break-word; }
+.previa td p{ margin:0 0 3px; }
+.previa td ul{ margin:0 0 3px; padding-left:16px; }
+.previa h4{ margin:1rem 0 .3rem; font-size:.95rem; }
+
+.bloque-final{ display:grid; gap:1rem; }
+.opciones-final{ display:grid; gap:.5rem; }
+
+.resultado{
+  padding:1rem 1.1rem; border-radius:var(--r-md);
+  background:var(--ok-tenue); border:1px solid var(--ok);
+  display:grid; gap:.6rem;
+}
+.resultado a{ color:var(--marca-oscura); font-weight:600; }
+
+/* ══════════════════════════════════════════════════════════ Biblioteca */
+
+.item-lista{
+  display:flex; align-items:center; gap:.9rem; flex-wrap:wrap;
+  padding:.8rem .95rem; border-radius:var(--r-md);
+  border:1px solid var(--borde); background:var(--superficie-2);
+  margin-bottom:.6rem;
+}
+.item-lista__txt{ flex:1; min-width:180px; }
+.item-lista__txt b{ font-family:var(--fuente-titulo); font-size:.92rem; }
+.item-lista__txt small{ display:block; color:var(--texto-tenue); font-size:.74rem; }
+.item-lista__acc{ display:flex; gap:.35rem; flex-wrap:wrap; }
+
+/* ═════════════════════════════════════════════════════════════ Modales */
+
+.modal{
+  position:fixed; inset:0; z-index:60;
+  display:grid; place-items:center; padding:1.2rem;
+  background:rgba(34,26,40,.42); backdrop-filter:blur(3px);
+  animation:aparecer .2s ease;
+}
+.modal[hidden]{ display:none; }
+.modal__caja{
+  width:min(520px,100%); max-height:88vh; display:flex; flex-direction:column;
+  background:var(--superficie); border-radius:var(--r-lg); box-shadow:var(--sombra-lg);
+  overflow:hidden;
+}
+.modal__caja--ancha{ width:min(880px,100%); }
+.modal__head{
+  display:flex; align-items:center; justify-content:space-between;
+  padding:1rem 1.2rem; border-bottom:1px solid var(--borde);
+}
+.modal__head h3{ font-size:1.05rem; }
+.modal__cuerpo{ padding:1.2rem; overflow:auto; display:grid; gap:.9rem; }
+.modal__pie{
+  display:flex; justify-content:flex-end; gap:.6rem;
+  padding:.9rem 1.2rem; border-top:1px solid var(--borde); background:var(--superficie-2);
+}
+.nota{
+  font-size:.76rem; color:var(--texto-suave);
+  background:var(--alerta-tenue); border-left:3px solid var(--alerta);
+  padding:.6rem .8rem; border-radius:var(--r-xs); margin:0;
+}
+
+/* ══════════════════════════════════════════════ Cargador y notificaciones */
+
+.cargando{
+  position:fixed; inset:0; z-index:80; display:grid; place-items:center;
+  background:rgba(255,246,250,.86); backdrop-filter:blur(4px);
+}
+.cargando[hidden]{ display:none; }
+.cargando__caja{ text-align:center; display:grid; gap:.5rem; justify-items:center; }
+.cargando__caja p{ font-family:var(--fuente-titulo); font-weight:600; margin:0; }
+.cargando__caja small{ color:var(--texto-tenue); font-size:.78rem; }
+
+.spinner{
+  width:46px; height:46px; border-radius:50%;
+  border:4px solid var(--marca-tenue); border-top-color:var(--marca);
+  animation:girar .85s linear infinite;
+}
+@keyframes girar{ to{ transform:rotate(360deg); } }
+
+.toasts{
+  position:fixed; right:1.2rem; bottom:1.2rem; z-index:90;
+  display:grid; gap:.5rem; max-width:min(360px,92vw);
+}
+.toast{
+  display:flex; align-items:flex-start; gap:.6rem;
+  padding:.75rem .95rem; border-radius:var(--r-md);
+  background:var(--superficie); border-left:4px solid var(--marca);
+  box-shadow:var(--sombra); font-size:.84rem;
+  animation:entraToast .28s ease;
+}
+.toast--ok{ border-left-color:var(--ok); }
+.toast--error{ border-left-color:var(--error); }
+.toast--alerta{ border-left-color:var(--alerta); }
+.toast.is-saliendo{ animation:saleToast .25s ease forwards; }
+@keyframes entraToast{ from{ opacity:0; transform:translateX(28px);} to{ opacity:1; transform:none;} }
+@keyframes saleToast{ to{ opacity:0; transform:translateX(28px);} }
+
+/* ════════════════════════════════════════════════════════ Responsivo */
+
+@media (max-width:1180px){
+  .editor{ grid-template-columns:230px minmax(0,1fr); }
+  .props{ grid-column:1 / -1; position:static; max-height:none; }
+  .props__cuerpo{ grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); }
+}
+@media (max-width:900px){
+  .form-grid{ grid-template-columns:repeat(2,1fr); }
+  .stepper{ grid-template-columns:repeat(2,1fr); }
+  .panel-tiempos__cifras{ grid-template-columns:repeat(2,1fr); }
+}
+@media (max-width:720px){
+  .topbar{ height:auto; padding:.7rem 1rem; flex-wrap:wrap; }
+  .topbar__actions .btn span:not(.ico){ display:none; }
+  .form-grid{ grid-template-columns:1fr; }
+  .editor{ grid-template-columns:1fr; }
+  .paleta{ position:static; max-height:280px; }
+  .hero__blob{ display:none; }
+}
+
+@media (prefers-reduced-motion:reduce){
+  *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+}
+</style>
+
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════ Barra superior -->
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <div>
+      <h1 class="brand-name">Planeaciones<span>Comunitarias</span></h1>
+      <p class="brand-tag">Proyectos comunitarios asistidos por IA</p>
+    </div>
+  </div>
+
+  <nav class="topbar__actions">
+    <button class="btn btn--ghost" id="btnBiblioteca" type="button">
+      <span class="ico">📚</span> Mis planeaciones
+    </button>
+    <button class="btn btn--ghost" id="btnDrive" type="button">
+      <span class="ico">🗂️</span> Carpeta en Drive
+    </button>
+    <button class="btn btn--ghost" id="btnConfig" type="button">
+      <span class="ico">⚙️</span> Configuración
+    </button>
+    <button class="btn btn--primary" id="btnGuardar" type="button">
+      <span class="ico">💾</span> Guardar
+    </button>
+  </nav>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════ Pasos -->
+<div class="stepper" id="stepper">
+  <button class="step is-active" data-paso="1" type="button">
+    <span class="step__num">1</span>
+    <span class="step__txt"><b>Insumos</b><small>Tema, grupo y tiempo</small></span>
+  </button>
+  <button class="step" data-paso="2" type="button">
+    <span class="step__num">2</span>
+    <span class="step__txt"><b>Actividades</b><small>Selección y tiempos</small></span>
+  </button>
+  <button class="step" data-paso="3" type="button">
+    <span class="step__num">3</span>
+    <span class="step__txt"><b>Plantilla</b><small>Maquetado drag &amp; drop</small></span>
+  </button>
+  <button class="step" data-paso="4" type="button">
+    <span class="step__num">4</span>
+    <span class="step__txt"><b>Documento</b><small>Generar en Google Docs</small></span>
+  </button>
+</div>
+
+<main class="lienzo">
+
+  <!-- ════════════════════════════════════ PASO 1 · Insumos y generación -->
+  <section class="vista is-active" id="vista-1">
+    <div class="hero">
+      <div class="hero__texto">
+        <span class="pill">Nueva Escuela Mexicana · 3 fases, 11 momentos</span>
+        <h2>Describe tu contexto y la IA construye el proyecto</h2>
+        <p>Las actividades se generan dentro de la metodología de <b>Proyectos Comunitarios</b>,
+           ajustadas al nivel, a los recursos reales y a las características de tu grupo.</p>
+      </div>
+      <div class="hero__blob" aria-hidden="true"></div>
+    </div>
+
+    <form class="tarjeta form-grid" id="formInsumos" autocomplete="off">
+      <div class="campo campo--ancho">
+        <label for="tema">Tema o problemática detonadora <span class="req">*</span></label>
+        <input type="text" id="tema" name="tema" required
+               placeholder="Ej. El desperdicio de agua en el barrio y las huertas de traspatio">
+        <small>Escríbelo como una situación real de la comunidad, no como un título de libro.</small>
+      </div>
+
+      <div class="campo">
+        <label for="nivel">Nivel educativo <span class="req">*</span></label>
+        <select id="nivel" name="nivel" required>
+          <option value="">Selecciona…</option>
+          <option>Preescolar</option>
+          <option>Primaria</option>
+          <option>Secundaria</option>
+          <option>Telesecundaria</option>
+          <option>Media superior</option>
+          <option>Educación especial</option>
+          <option>Educación para adultos</option>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="grado">Grado / fase</label>
+        <input type="text" id="grado" name="grado" placeholder="Ej. 4.º grado (Fase 4)">
+      </div>
+
+      <div class="campo">
+        <label for="campoFormativo">Campo formativo prioritario</label>
+        <select id="campoFormativo" name="campoFormativo">
+          <option value="">Que lo decida la IA</option>
+          <option>Lenguajes</option>
+          <option>Saberes y Pensamiento Científico</option>
+          <option>Ética, Naturaleza y Sociedades</option>
+          <option>De lo Humano y lo Comunitario</option>
+          <option>Interdisciplinario (varios campos)</option>
+        </select>
+      </div>
+
+      <div class="campo campo--ancho">
+        <label for="caracteristicasGrupo">Características del grupo y del salón</label>
+        <textarea id="caracteristicasGrupo" name="caracteristicasGrupo" rows="3"
+          placeholder="Ej. 28 alumnos, 3 con lectura incipiente, 1 con TDAH, aula pequeña con bancas fijas, grupo muy participativo."></textarea>
+      </div>
+
+      <div class="campo campo--ancho">
+        <label for="recursos">Recursos realmente disponibles</label>
+        <textarea id="recursos" name="recursos" rows="3"
+          placeholder="Ej. hojas de reúso, colores, un proyector compartido, celular del docente, patio, biblioteca de aula. Sin internet en el salón."></textarea>
+      </div>
+
+      <div class="campo campo--ancho">
+        <label for="contextoComunitario">Contexto comunitario</label>
+        <textarea id="contextoComunitario" name="contextoComunitario" rows="2"
+          placeholder="Ej. Colonia semiurbana, muchas familias dedicadas al comercio, hay un mercado y un arroyo contaminado a dos calles."></textarea>
+      </div>
+
+      <div class="campo">
+        <label for="sesiones">Número de sesiones <span class="req">*</span></label>
+        <input type="number" id="sesiones" name="sesiones" min="1" max="120" value="10" required>
+      </div>
+
+      <div class="campo">
+        <label for="minutosPorSesion">Minutos por sesión <span class="req">*</span></label>
+        <input type="number" id="minutosPorSesion" name="minutosPorSesion" min="10" max="300" step="5" value="50" required>
+      </div>
+
+      <div class="campo">
+        <label for="semanas">Semanas</label>
+        <input type="number" id="semanas" name="semanas" min="1" max="40" value="3">
+      </div>
+
+      <div class="campo">
+        <label for="actividadesPorMomento">Actividades por momento</label>
+        <select id="actividadesPorMomento" name="actividadesPorMomento">
+          <option value="2">2 (recomendado)</option>
+          <option value="1">1</option>
+          <option value="3">3</option>
+        </select>
+        <small>Se generan para cada uno de los 11 momentos.</small>
+      </div>
+
+      <div class="campo campo--ancho resumen-tiempo">
+        <span class="chip chip--tiempo" id="chipTiempoTotal">500 minutos totales</span>
+        <span class="chip" id="chipActividades">≈ 22 actividades propuestas</span>
+      </div>
+
+      <div class="acciones acciones--fin campo--ancho">
+        <button type="button" class="btn btn--ghost" id="btnLimpiar">Limpiar</button>
+        <button type="submit" class="btn btn--primary btn--grande" id="btnGenerar">
+          <span class="ico">✨</span> Generar propuesta con IA
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ══════════════════════════ PASO 2 · Selección y reparto de tiempos -->
+  <section class="vista" id="vista-2">
+    <div class="encabezado-vista">
+      <div>
+        <h2 id="tituloProyecto">Propuesta generada</h2>
+        <p class="sub" id="problematicaProyecto"></p>
+      </div>
+      <div class="encabezado-vista__acciones">
+        <button class="btn btn--ghost" id="btnVerExplicacion" type="button">📖 Ver explicación del tema</button>
+        <button class="btn btn--ghost" id="btnVolver1" type="button">← Cambiar insumos</button>
+      </div>
+    </div>
+
+    <div class="panel-tiempos tarjeta">
+      <div class="panel-tiempos__cifras">
+        <div class="cifra"><b id="cifraSeleccionadas">0</b><small>actividades elegidas</small></div>
+        <div class="cifra"><b id="cifraDisponible">0</b><small>minutos disponibles</small></div>
+        <div class="cifra"><b id="cifraAsignado">0</b><small>minutos repartidos</small></div>
+        <div class="cifra"><b id="cifraSesiones">0</b><small>sesiones utilizadas</small></div>
+      </div>
+      <div class="panel-tiempos__controles">
+        <label class="campo campo--inline">
+          <span>Reparto</span>
+          <select id="modoReparto">
+            <option value="proporcional">Proporcional a lo sugerido</option>
+            <option value="equitativo">Equitativo</option>
+            <option value="manual">Manual (respetar mis minutos)</option>
+          </select>
+        </label>
+        <button class="btn btn--secundario" id="btnRecalcular" type="button">🕒 Recalcular tiempos</button>
+      </div>
+      <div class="barra-fases" id="barraFases"></div>
+    </div>
+
+    <div class="filtros" id="filtrosFase"></div>
+
+    <div id="listaMomentos" class="lista-momentos"></div>
+
+    <div class="acciones acciones--fin">
+      <button class="btn btn--primary btn--grande" id="btnIrPlantilla" type="button">
+        Diseñar plantilla →
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ PASO 3 · Editor de plantilla drag & drop -->
+  <section class="vista" id="vista-3">
+    <div class="encabezado-vista">
+      <div>
+        <h2>Diseñador de plantilla</h2>
+        <p class="sub">Arrastra los bloques de la izquierda a las celdas de la tabla. También puedes
+           escribir texto libre y usar marcadores como <code>{{explicacion_resumen}}</code>.</p>
+      </div>
+      <div class="encabezado-vista__acciones">
+        <button class="btn btn--ghost" id="btnPlantillasGuardadas" type="button">📐 Plantillas</button>
+        <button class="btn btn--ghost" id="btnGuardarPlantilla" type="button">💾 Guardar maquetado</button>
+        <button class="btn btn--ghost" id="btnVolver2" type="button">← Actividades</button>
+      </div>
+    </div>
+
+    <div class="editor">
+
+      <!-- ─────────────────────────────── Paleta de bloques arrastrables -->
+      <aside class="paleta" id="paleta">
+        <div class="paleta__buscador">
+          <input type="search" id="buscarBloque" placeholder="Buscar bloque…" aria-label="Buscar bloque">
+        </div>
+        <div class="paleta__lista" id="paletaLista"></div>
+        <p class="paleta__ayuda">
+          Arrastra un bloque a cualquier celda. Doble clic en un bloque para insertarlo
+          en la celda seleccionada.
+        </p>
+      </aside>
+
+      <!-- ───────────────────────────────────────── Rejilla de la tabla -->
+      <div class="tablero">
+        <div class="tablero__barra">
+          <div class="grupo-btn">
+            <button class="btn btn--mini" data-accion="fila-add" type="button">＋ Fila</button>
+            <button class="btn btn--mini" data-accion="fila-del" type="button">－ Fila</button>
+            <button class="btn btn--mini" data-accion="col-add" type="button">＋ Columna</button>
+            <button class="btn btn--mini" data-accion="col-del" type="button">－ Columna</button>
+          </div>
+          <div class="grupo-btn">
+            <button class="btn btn--mini" data-accion="fusionar-h" type="button">⇔ Combinar →</button>
+            <button class="btn btn--mini" data-accion="fusionar-v" type="button">⇕ Combinar ↓</button>
+            <button class="btn btn--mini" data-accion="separar" type="button">⤫ Separar</button>
+          </div>
+          <div class="grupo-btn">
+            <button class="btn btn--mini" data-accion="encabezado" type="button">🏷️ Encabezado</button>
+            <button class="btn btn--mini" data-accion="limpiar-celda" type="button">🧹 Vaciar celda</button>
+          </div>
+          <div class="grupo-btn grupo-btn--fin">
+            <select id="preajuste" class="select-mini" aria-label="Diseño base">
+              <option value="">Diseños base…</option>
+              <option value="clasica">Tabla clásica por momentos</option>
+              <option value="sesiones">Por sesiones</option>
+              <option value="fases">Por fases (3 columnas)</option>
+              <option value="compacta">Ficha compacta</option>
+              <option value="vacia">Tabla vacía</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="tablero__scroll">
+          <table class="rejilla" id="rejilla"></table>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────── Propiedades e institución -->
+      <aside class="props">
+        <div class="props__seccion">
+          <h3>Celda seleccionada</h3>
+          <div id="propsCelda" class="props__cuerpo">
+            <p class="vacio">Selecciona una celda de la tabla.</p>
+          </div>
+        </div>
+
+        <div class="props__seccion">
+          <h3>Estilo del documento</h3>
+          <div class="props__cuerpo">
+            <label class="campo campo--mini">
+              <span>Color principal</span>
+              <input type="color" id="estiloColorPrimario" value="#E5397F">
+            </label>
+            <label class="campo campo--mini">
+              <span>Fondo de encabezados</span>
+              <input type="color" id="estiloFondoEncabezado" value="#FDE7F0">
+            </label>
+            <label class="campo campo--mini">
+              <span>Texto de encabezados</span>
+              <input type="color" id="estiloColorEncabezado" value="#8A1F4C">
+            </label>
+            <label class="campo campo--mini">
+              <span>Color del borde</span>
+              <input type="color" id="estiloColorBorde" value="#C8CDD8">
+            </label>
+            <label class="campo campo--mini">
+              <span>Grosor del borde</span>
+              <input type="number" id="estiloAnchoBorde" min="0" max="6" step="0.5" value="1">
+            </label>
+            <label class="campo campo--mini">
+              <span>Tipografía</span>
+              <select id="estiloFuente">
+                <option>Arial</option><option>Verdana</option><option>Georgia</option>
+                <option>Times New Roman</option><option>Calibri</option><option>Roboto</option>
+              </select>
+            </label>
+            <label class="campo campo--mini">
+              <span>Tamaño base</span>
+              <input type="number" id="estiloTamano" min="6" max="16" value="9">
+            </label>
+            <label class="campo campo--mini">
+              <span>Orientación</span>
+              <select id="estiloOrientacion">
+                <option value="vertical">Vertical (carta)</option>
+                <option value="horizontal">Horizontal (carta)</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="props__seccion">
+          <h3>Datos institucionales</h3>
+          <div class="props__cuerpo" id="propsMeta">
+            <label class="campo campo--mini"><span>Docente</span><input type="text" data-meta="docente"></label>
+            <label class="campo campo--mini"><span>Escuela</span><input type="text" data-meta="escuela"></label>
+            <label class="campo campo--mini"><span>CCT</span><input type="text" data-meta="cct"></label>
+            <label class="campo campo--mini"><span>Zona / sector</span><input type="text" data-meta="zona"></label>
+            <label class="campo campo--mini"><span>Ciclo escolar</span><input type="text" data-meta="ciclo" placeholder="2025-2026"></label>
+            <label class="campo campo--mini"><span>Grado y grupo</span><input type="text" data-meta="gradoGrupo"></label>
+            <label class="campo campo--mini"><span>Asignatura / campo</span><input type="text" data-meta="asignatura"></label>
+            <label class="campo campo--mini"><span>Periodo</span><input type="text" data-meta="periodo" placeholder="Del 6 al 24 de octubre"></label>
+            <label class="campo campo--mini"><span>Director(a)</span><input type="text" data-meta="director"></label>
+            <button class="btn btn--mini" id="btnGuardarPerfil" type="button">Recordar mis datos</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="acciones acciones--fin">
+      <button class="btn btn--primary btn--grande" id="btnIrDocumento" type="button">
+        Vista previa y documento →
+      </button>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ PASO 4 · Vista previa y generación -->
+  <section class="vista" id="vista-4">
+    <div class="encabezado-vista">
+      <div>
+        <h2>Vista previa del documento</h2>
+        <p class="sub">Así se escribirá en Google Docs. Si algo no cuadra, vuelve al diseñador.</p>
+      </div>
+      <div class="encabezado-vista__acciones">
+        <button class="btn btn--ghost" id="btnVolver3" type="button">← Diseñador</button>
+      </div>
+    </div>
+
+    <div class="tarjeta bloque-final">
+      <label class="campo">
+        <span>Nombre del documento</span>
+        <input type="text" id="nombreDocumento" placeholder="Planeación · Proyecto comunitario">
+      </label>
+      <div class="opciones-final">
+        <label class="check"><input type="checkbox" id="optSobrescribir"> Actualizar el documento ya generado en vez de crear otro</label>
+        <label class="check"><input type="checkbox" id="optPDF"> Exportar también en PDF</label>
+        <label class="check"><input type="checkbox" id="optAnexos" checked> Añadir anexos (evaluación, recursos y agenda de sesiones)</label>
+      </div>
+      <div class="acciones acciones--fin">
+        <button class="btn btn--primary btn--grande" id="btnGenerarDoc" type="button">
+          <span class="ico">📄</span> Generar en Google Docs
+        </button>
+      </div>
+      <div id="resultadoDoc" class="resultado" hidden></div>
+    </div>
+
+    <div class="previa" id="previa"></div>
+  </section>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════ Modales -->
+
+<div class="modal" id="modalConfig" hidden>
+  <div class="modal__caja">
+    <header class="modal__head">
+      <h3>Configuración de la IA</h3>
+      <button class="btn btn--icono" data-cerrar type="button">✕</button>
+    </header>
+    <div class="modal__cuerpo">
+      <label class="campo">
+        <span>Proveedor</span>
+        <select id="cfgProveedor">
+          <option value="gemini">Google Gemini</option>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic (Claude)</option>
+        </select>
+      </label>
+      <label class="campo">
+        <span>Modelo</span>
+        <input type="text" id="cfgModelo" placeholder="gemini-2.0-flash">
+      </label>
+      <label class="campo">
+        <span>API key</span>
+        <input type="password" id="cfgApiKey" placeholder="Pega tu clave aquí">
+        <small id="cfgEstadoKey">Sin configurar.</small>
+      </label>
+      <p class="nota">
+        La clave se guarda en las <b>propiedades del script</b>, no en el navegador ni en el documento.
+        Escribe <code>BORRAR</code> y guarda para eliminarla.
+      </p>
+    </div>
+    <footer class="modal__pie">
+      <button class="btn btn--ghost" id="btnProbarIA" type="button">Probar conexión</button>
+      <button class="btn btn--primary" id="btnGuardarConfig" type="button">Guardar</button>
+    </footer>
+  </div>
+</div>
+
+<div class="modal" id="modalBiblioteca" hidden>
+  <div class="modal__caja modal__caja--ancha">
+    <header class="modal__head">
+      <h3>Mis planeaciones</h3>
+      <button class="btn btn--icono" data-cerrar type="button">✕</button>
+    </header>
+    <div class="modal__cuerpo" id="listaBiblioteca">
+      <p class="vacio">Cargando…</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modalExplicacion" hidden>
+  <div class="modal__caja modal__caja--ancha">
+    <header class="modal__head">
+      <h3>Explicación del tema</h3>
+      <button class="btn btn--icono" data-cerrar type="button">✕</button>
+    </header>
+    <div class="modal__cuerpo" id="cuerpoExplicacion"></div>
+  </div>
+</div>
+
+<div class="modal" id="modalPlantillas" hidden>
+  <div class="modal__caja">
+    <header class="modal__head">
+      <h3>Maquetados guardados</h3>
+      <button class="btn btn--icono" data-cerrar type="button">✕</button>
+    </header>
+    <div class="modal__cuerpo" id="listaPlantillas"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ Cargador y notificaciones -->
+<div class="cargando" id="cargando" hidden>
+  <div class="cargando__caja">
+    <div class="spinner" aria-hidden="true"></div>
+    <p id="cargandoTexto">Trabajando…</p>
+    <small id="cargandoNota">Las respuestas de la IA pueden tardar hasta un minuto.</small>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script>
+/* Simulador de google.script.run para probar la interfaz fuera de Apps Script. */
+(function () {
+  const FASES = [
+    ['Planeación', ['Identificación', 'Recuperación', 'Planificación']],
+    ['Acción', ['Acercamiento', 'Comprensión y producción', 'Reconocimiento', 'Concreción']],
+    ['Intervención', ['Integración', 'Difusión', 'Consideraciones', 'Avances']]
+  ];
+  let n = 0;
+  const uid = () => 'act_' + (++n);
+
+  function propuesta(insumos) {
+    const momentos = [];
+    FASES.forEach(([fase, moms]) => moms.forEach(momento => {
+      const acts = [];
+      for (let i = 0; i < (insumos.actividadesPorMomento || 2); i++) {
+        acts.push({
+          id: uid(), fase, momento,
+          titulo: 'Recorrer el barrio para ' + momento.toLowerCase() + ' (' + (i + 1) + ')',
+          descripcion: 'El grupo sale en equipos, registra evidencias del problema de ' +
+            insumos.tema + ' y elabora un mapa comunitario con lo observado.',
+          consignaAlumno: 'Anoten todo lo que vean relacionado con el problema.',
+          organizacion: ['equipos', 'grupal', 'binas'][i % 3],
+          recursos: ['libreta', 'lápiz', 'cámara del celular'],
+          evidencia: 'Mapa comunitario con anotaciones',
+          participacionComunitaria: i % 2 ? 'ninguna' : 'Vecinos entrevistados',
+          duracionSugerida: 30 + i * 10,
+          duracionAsignada: 30 + i * 10,
+          seleccionada: true
+        });
+      }
+      momentos.push({ fase, momento, proposito: 'Propósito de ' + momento + ' en este proyecto.', actividades: acts });
+    }));
+
+    return {
+      id: 'proy1', creado: new Date().toISOString(), insumos,
+      tituloProyecto: 'Cuidamos el agua de nuestro barrio',
+      problematica: 'El agua se desperdicia en las tomas públicas de la colonia.',
+      productoFinal: 'Campaña vecinal y estación de captación de lluvia.',
+      explicacion: {
+        resumen: 'El ciclo del agua en contextos urbanos y las pérdidas por fugas domésticas.',
+        relevanciaComunitaria: 'La colonia recibe agua por tandeo dos veces por semana.',
+        conceptosClave: [{ titulo: 'Tandeo', texto: 'Distribución intermitente del agua potable.' },
+                         { titulo: 'Captación pluvial', texto: 'Recolección de agua de lluvia para reúso.' }],
+        erroresFrecuentes: ['Confundir agua potable con agua tratada.']
+      },
+      camposFormativos: ['Saberes y Pensamiento Científico', 'Ética, Naturaleza y Sociedades'],
+      ejesArticuladores: ['Vida saludable', 'Pensamiento crítico'],
+      contenidos: ['Cuidado del entorno y recursos naturales'],
+      pda: ['Explica el uso responsable del agua en su comunidad.'],
+      momentos,
+      evaluacion: {
+        enfoque: 'Evaluación formativa con evidencias de proceso.',
+        instrumentos: [{ nombre: 'Rúbrica', momentoDeUso: 'Cierre', descripcion: 'Valora el producto final.' }],
+        criterios: ['Participa en el trabajo por equipos', 'Registra datos con precisión'],
+        indicadoresLogro: ['Explica dos causas del desperdicio de agua.']
+      },
+      recursosConsolidados: ['Libreta', 'Botellas PET', 'Cinta métrica'],
+      adecuaciones: [{ situacion: 'Lectura incipiente', ajuste: 'Registro con dibujos y audio.' }],
+      vinculacionFamilias: 'Se invita a las familias a la feria comunitaria de cierre.'
+    };
+  }
+
+  function distribuir(proyecto, opciones) {
+    const acts = [];
+    proyecto.momentos.forEach(m => m.actividades.forEach(a => { if (a.seleccionada !== false) acts.push(a); }));
+    const total = opciones.sesiones * opciones.minutosPorSesion;
+    const suma = acts.reduce((s, a) => s + a.duracionSugerida, 0) || 1;
+    acts.forEach(a => { a.duracionAsignada = Math.max(5, Math.round(total * a.duracionSugerida / suma / 5) * 5); });
+
+    const sesiones = [];
+    let actual = { numero: 1, bloques: [], minutosUsados: 0, minutosLibres: 0 };
+    let usado = 0;
+    acts.forEach(a => {
+      let resta = a.duracionAsignada;
+      while (resta > 0) {
+        const hueco = opciones.minutosPorSesion - usado;
+        if (hueco < Math.min(5, resta)) {
+          sesiones.push(actual);
+          actual = { numero: sesiones.length + 1, bloques: [], minutosUsados: 0, minutosLibres: 0 };
+          usado = 0; continue;
+        }
+        const trozo = Math.min(hueco, resta);
+        actual.bloques.push({ actividadId: a.id, fase: a.fase, momento: a.momento, titulo: a.titulo, minutos: trozo });
+        usado += trozo; resta -= trozo; actual.minutosUsados = usado;
+      }
+    });
+    if (actual.bloques.length) sesiones.push(actual);
+
+    const porFase = {};
+    acts.forEach(a => { porFase[a.fase] = (porFase[a.fase] || 0) + a.duracionAsignada; });
+    const asignado = acts.reduce((s, a) => s + a.duracionAsignada, 0);
+
+    return {
+      totalDisponible: total, totalAsignado: asignado, diferencia: total - asignado,
+      sesionesPlanificadas: opciones.sesiones, minutosPorSesion: opciones.minutosPorSesion,
+      sesionesUsadas: sesiones.length, desborde: Math.max(sesiones.length - opciones.sesiones, 0),
+      actividades: acts.map(a => ({ id: a.id, fase: a.fase, momento: a.momento, titulo: a.titulo,
+        duracionSugerida: a.duracionSugerida, duracionAsignada: a.duracionAsignada })),
+      sesiones,
+      porFase: Object.keys(porFase).map(k => ({ nombre: k, minutos: porFase[k],
+        actividades: 0, porcentaje: Math.round(porFase[k] / asignado * 100) })),
+      porMomento: []
+    };
+  }
+
+  const API = {
+    obtenerConfiguracion: () => ({ proveedor: 'gemini', modelo: 'gemini-2.0-flash', tieneApiKey: true,
+      apiKeyMascara: 'AIza••••••••1234', perfil: { docente: 'Prof. Ejemplo', escuela: 'Esc. Prim. Benito Juárez' },
+      usuario: 'demo@escuela.mx', version: '1.0.0-demo' }),
+    guardarConfiguracion: cfg => Object.assign(API.obtenerConfiguracion(), cfg, { tieneApiKey: true }),
+    guardarPerfilDocente: () => ({ ok: true }),
+    generarInsumos: i => ({ ok: true, data: propuesta(i) }),
+    regenerarMomento: () => ({ ok: true, data: [] }),
+    distribuirTiempos: (p, o) => ({ ok: true, data: distribuir(p, o) }),
+    guardarProyecto: () => ({ ok: true, data: { archivoId: 'f1', nombre: 'demo.json', url: '#', actualizado: '' } }),
+    listarProyectos: () => ({ ok: true, data: [] }),
+    listarPlantillas: () => ({ ok: true, data: [] }),
+    obtenerCarpetaDrive: () => ({ ok: true, data: { id: 'c1', nombre: 'Demo', url: '#' } }),
+    generarDocumento: () => ({ ok: true, data: { docId: 'd1', url: '#', nombre: 'Planeación demo', avisoFusion: '' } }),
+    exportarPDF: () => ({ ok: true, data: { archivoId: 'p1', url: '#', nombre: 'demo.pdf' } }),
+    probarConexionIA: () => ({ ok: true, data: { respuesta: 'CONEXION_OK' } })
+  };
+
+  const run = {
+    withSuccessHandler(fn) { const r = Object.create(run); r._ok = fn; r._err = this._err; return r; },
+    withFailureHandler(fn) { const r = Object.create(run); r._err = fn; r._ok = this._ok; return r; }
+  };
+  Object.keys(API).forEach(nombre => {
+    run[nombre] = function () {
+      const args = arguments, ok = this._ok, err = this._err;
+      setTimeout(() => {
+        try { ok(API[nombre].apply(null, args)); }
+        catch (e) { if (err) err(e); else console.error(e); }
+      }, 120);
+    };
+  });
+  window.google = { script: { run } };
+})();
+</script>
+
+<script>
+/* ════════════════════════════════════════════════════════════════════════
+   JavaScript.html · Lógica de cliente.
+   Secciones: 1) puente con el servidor  2) estado  3) interfaz base
+              4) paso 1 insumos  5) paso 2 actividades y tiempos
+              6) catálogo de bloques  7) paso 3 editor drag & drop
+              8) paso 4 vista previa y documento  9) biblioteca y ajustes
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ─────────────────────────────────── 1. Puente con Google Apps Script ── */
+
+/** Ejecuta una función del servidor y devuelve una promesa con su valor crudo. */
+function llamar(nombre) {
+  const args = Array.prototype.slice.call(arguments, 1);
+  return new Promise((resolve, reject) => {
+    // El runner debe conservar su propio `this`: los manejadores viven en él.
+    const runner = google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(err => reject(new Error(err && err.message ? err.message : String(err))));
+    runner[nombre].apply(runner, args);
+  });
+}
+
+/** Igual que llamar(), pero desempaqueta el sobre {ok, data, error}. */
+async function pedir(nombre) {
+  const args = Array.prototype.slice.call(arguments, 1);
+  const res = await llamar.apply(null, [nombre].concat(args));
+  if (res && typeof res === 'object' && 'ok' in res) {
+    if (!res.ok) throw new Error(res.error || 'Error desconocido en el servidor.');
+    return res.data;
+  }
+  return res;
+}
+
+/* ──────────────────────────────────────────────────────── 2. Estado ── */
+
+const S = {
+  insumos: {},
+  proyecto: null,
+  distribucion: null,
+  archivoId: null,
+  docId: '',
+  docUrl: '',
+  filtroFase: 'todas',
+  sel: null,               // {f, c} celda seleccionada
+  config: null,
+  plantilla: {
+    orientacion: 'vertical',
+    columnas: 4,
+    anchos: [22, 40, 14, 24],
+    filas: [],
+    estilo: {
+      fuente: 'Arial', tamano: 9,
+      colorPrimario: '#E5397F', colorTexto: '#1F2430',
+      colorBorde: '#C8CDD8', anchoBorde: 1,
+      fondoEncabezado: '#FDE7F0', colorEncabezado: '#8A1F4C'
+    },
+    meta: {}
+  }
+};
+
+const $  = sel => document.querySelector(sel);
+const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+/* ────────────────────────────────────────────── 3. Interfaz base ── */
+
+function toast(mensaje, tipo = 'ok', ms = 4200) {
+  const t = document.createElement('div');
+  t.className = 'toast toast--' + tipo;
+  t.innerHTML = '<span class="ico">' +
+    (tipo === 'error' ? '⚠️' : tipo === 'alerta' ? '💡' : '✅') +
+    '</span><span></span>';
+  t.lastChild.textContent = mensaje;
+  $('#toasts').appendChild(t);
+  setTimeout(() => {
+    t.classList.add('is-saliendo');
+    setTimeout(() => t.remove(), 260);
+  }, ms);
+}
+
+function cargando(activo, texto, nota) {
+  const caja = $('#cargando');
+  if (activo) {
+    $('#cargandoTexto').textContent = texto || 'Trabajando…';
+    $('#cargandoNota').textContent = nota || 'Esto puede tardar unos segundos.';
+    caja.hidden = false;
+  } else {
+    caja.hidden = true;
+  }
+}
+
+function abrirModal(id) { $(id).hidden = false; }
+function cerrarModal(id) { $(id).hidden = true; }
+
+document.addEventListener('click', e => {
+  if (e.target.matches('[data-cerrar]')) e.target.closest('.modal').hidden = true;
+  if (e.target.classList.contains('modal')) e.target.hidden = true;
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') $$('.modal').forEach(m => m.hidden = true);
+});
+
+function irAPaso(n) {
+  $$('.vista').forEach(v => v.classList.remove('is-active'));
+  $('#vista-' + n).classList.add('is-active');
+  $$('.step').forEach(s => {
+    const p = Number(s.dataset.paso);
+    s.classList.toggle('is-active', p === n);
+    s.classList.toggle('is-done', p < n);
+  });
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (n === 4) renderPrevia();
+}
+
+$$('.step').forEach(s => s.addEventListener('click', () => {
+  const destino = Number(s.dataset.paso);
+  if (destino > 1 && !S.proyecto) return toast('Primero genera la propuesta con IA.', 'alerta');
+  if (destino >= 3 && !S.distribucion) return toast('Calcula los tiempos antes de diseñar la plantilla.', 'alerta');
+  irAPaso(destino);
+}));
+
+const escapar = txt => String(txt == null ? '' : txt)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;');
+
+const minutos = m => {
+  m = Math.round(Number(m) || 0);
+  if (m < 60) return m + ' min';
+  const h = Math.floor(m / 60), r = m % 60;
+  return h + ' h' + (r ? ' ' + r + ' min' : '');
+};
+
+/* ───────────────────────────────────────── 4. Paso 1 · Insumos ── */
+
+function leerInsumos() {
+  const f = $('#formInsumos');
+  return {
+    tema: f.tema.value.trim(),
+    nivel: f.nivel.value,
+    grado: f.grado.value.trim(),
+    campoFormativo: f.campoFormativo.value,
+    caracteristicasGrupo: f.caracteristicasGrupo.value.trim(),
+    recursos: f.recursos.value.trim(),
+    contextoComunitario: f.contextoComunitario.value.trim(),
+    sesiones: Number(f.sesiones.value),
+    minutosPorSesion: Number(f.minutosPorSesion.value),
+    semanas: Number(f.semanas.value) || null,
+    actividadesPorMomento: Number(f.actividadesPorMomento.value)
+  };
+}
+
+function actualizarChips() {
+  const i = leerInsumos();
+  const total = (i.sesiones || 0) * (i.minutosPorSesion || 0);
+  $('#chipTiempoTotal').textContent = total ? minutos(total) + ' en total' : 'Define el tiempo disponible';
+  $('#chipActividades').textContent = '≈ ' + (11 * (i.actividadesPorMomento || 2)) + ' actividades propuestas';
+}
+['sesiones', 'minutosPorSesion', 'actividadesPorMomento'].forEach(id =>
+  $('#' + id).addEventListener('input', actualizarChips));
+
+$('#formInsumos').addEventListener('submit', async e => {
+  e.preventDefault();
+  S.insumos = leerInsumos();
+  cargando(true, 'La IA está construyendo tu proyecto…',
+    'Genera 11 momentos con actividades, evaluación y recursos. Puede tardar hasta un minuto.');
+  try {
+    S.proyecto = await pedir('generarInsumos', S.insumos);
+    S.archivoId = null;
+    S.docId = '';
+    await recalcularTiempos();
+    renderPaso2();
+    irAPaso(2);
+    toast('Propuesta generada. Revisa y elige las actividades.');
+  } catch (err) {
+    toast(err.message, 'error', 8000);
+  } finally {
+    cargando(false);
+  }
+});
+
+$('#btnLimpiar').addEventListener('click', () => {
+  $('#formInsumos').reset();
+  actualizarChips();
+});
+
+$('#btnVolver1').addEventListener('click', () => irAPaso(1));
+$('#btnVolver2').addEventListener('click', () => irAPaso(2));
+$('#btnVolver3').addEventListener('click', () => irAPaso(3));
+
+/* ───────────────────────────── 5. Paso 2 · Actividades y tiempos ── */
+
+function todasLasActividades() {
+  const lista = [];
+  (S.proyecto.momentos || []).forEach(m =>
+    (m.actividades || []).forEach(a => lista.push(a)));
+  return lista;
+}
+
+function seleccionadas() {
+  return todasLasActividades().filter(a => a.seleccionada !== false);
+}
+
+async function recalcularTiempos(silencioso) {
+  if (!S.proyecto) return;
+  if (!seleccionadas().length) {
+    S.distribucion = null;
+    pintarCifras();
+    return;
+  }
+  try {
+    S.distribucion = await pedir('distribuirTiempos', S.proyecto, {
+      sesiones: S.insumos.sesiones,
+      minutosPorSesion: S.insumos.minutosPorSesion,
+      modo: $('#modoReparto').value
+    });
+    // El servidor devuelve las duraciones definitivas: se reflejan en las tarjetas.
+    const porId = {};
+    S.distribucion.actividades.forEach(a => { porId[a.id] = a; });
+    todasLasActividades().forEach(a => {
+      if (porId[a.id]) a.duracionAsignada = porId[a.id].duracionAsignada;
+    });
+    pintarCifras();
+    pintarMinutosEnTarjetas();
+    if (!silencioso) toast('Tiempos redistribuidos.');
+  } catch (err) {
+    toast(err.message, 'error', 7000);
+  }
+}
+
+function pintarCifras() {
+  const d = S.distribucion;
+  $('#cifraSeleccionadas').textContent = seleccionadas().length;
+  $('#cifraDisponible').textContent = d ? d.totalDisponible : (S.insumos.sesiones * S.insumos.minutosPorSesion) || 0;
+  $('#cifraAsignado').textContent = d ? d.totalAsignado : 0;
+  $('#cifraSesiones').textContent = d ? d.sesionesUsadas : 0;
+
+  const barra = $('#barraFases');
+  barra.innerHTML = '';
+  if (!d) return;
+  d.porFase.forEach(f => {
+    const seg = document.createElement('div');
+    seg.className = 'barra-fases__seg';
+    seg.style.flexGrow = Math.max(f.porcentaje, 1);
+    seg.title = f.nombre + ' · ' + minutos(f.minutos);
+    seg.textContent = f.porcentaje >= 10 ? f.nombre + ' ' + f.porcentaje + '%' : f.porcentaje + '%';
+    barra.appendChild(seg);
+  });
+
+  if (d.desborde > 0) {
+    $('#cifraSesiones').style.color = 'var(--error)';
+  } else {
+    $('#cifraSesiones').style.color = '';
+  }
+}
+
+function pintarMinutosEnTarjetas() {
+  todasLasActividades().forEach(a => {
+    const input = document.querySelector('.act__min[data-id="' + a.id + '"]');
+    if (input) input.value = a.duracionAsignada;
+  });
+}
+
+function renderPaso2() {
+  const p = S.proyecto;
+  $('#tituloProyecto').textContent = p.tituloProyecto || 'Propuesta generada';
+  $('#problematicaProyecto').textContent = p.problematica || '';
+
+  const fases = ['todas', 'Planeación', 'Acción', 'Intervención'];
+  $('#filtrosFase').innerHTML = fases.map(f =>
+    '<button type="button" class="filtro' + (S.filtroFase === f ? ' is-active' : '') +
+    '" data-fase="' + escapar(f) + '">' + (f === 'todas' ? 'Todas las fases' : f) + '</button>'
+  ).join('');
+
+  const cont = $('#listaMomentos');
+  cont.innerHTML = '';
+
+  p.momentos.forEach((m, i) => {
+    if (S.filtroFase !== 'todas' && m.fase !== S.filtroFase) return;
+
+    const elegidas = (m.actividades || []).filter(a => a.seleccionada !== false);
+    const totalMin = elegidas.reduce((s, a) => s + (a.duracionAsignada || 0), 0);
+
+    const card = document.createElement('article');
+    card.className = 'momento';
+    card.innerHTML =
+      '<header class="momento__head">' +
+        '<span class="momento__fase" data-fase="' + escapar(m.fase) + '">' + escapar(m.fase) + '</span>' +
+        '<span class="momento__titulo">' + (i + 1) + '. ' + escapar(m.momento) + '</span>' +
+        '<span class="momento__meta">' +
+          '<span class="chip">' + elegidas.length + ' de ' + (m.actividades || []).length + '</span>' +
+          '<span class="chip chip--tiempo">' + minutos(totalMin) + '</span>' +
+          '<button type="button" class="btn btn--mini" data-regenerar="' + i + '">🔄 Otras ideas</button>' +
+        '</span>' +
+      '</header>' +
+      '<div class="momento__cuerpo">' +
+        (m.proposito ? '<p class="momento__proposito">' + escapar(m.proposito) + '</p>' : '') +
+        '<div class="tarjetas-act"></div>' +
+      '</div>';
+
+    const grid = card.querySelector('.tarjetas-act');
+    (m.actividades || []).forEach(a => grid.appendChild(tarjetaActividad(a)));
+    cont.appendChild(card);
+  });
+
+  if (!cont.children.length) {
+    cont.innerHTML = '<p class="vacio">No hay momentos para el filtro seleccionado.</p>';
+  }
+  pintarCifras();
+}
+
+function tarjetaActividad(a) {
+  const el = document.createElement('div');
+  el.className = 'act ' + (a.seleccionada !== false ? 'is-on' : 'is-off');
+  el.dataset.id = a.id;
+  el.innerHTML =
+    '<div class="act__head">' +
+      '<input type="checkbox" class="act__check"' + (a.seleccionada !== false ? ' checked' : '') + '>' +
+      '<div class="act__titulo">' + escapar(a.titulo) + '</div>' +
+    '</div>' +
+    '<p class="act__desc">' + escapar(a.descripcion) + '</p>' +
+    (a.evidencia ? '<p class="act__desc"><b>Evidencia:</b> ' + escapar(a.evidencia) + '</p>' : '') +
+    '<div class="act__pies">' +
+      '<span class="etiqueta">' + escapar(a.organizacion) + '</span>' +
+      (a.participacionComunitaria && !/^ningun/i.test(a.participacionComunitaria)
+        ? '<span class="etiqueta etiqueta--com">🤝 comunidad</span>' : '') +
+      '<input type="number" class="act__min" data-id="' + a.id + '" min="5" step="5" value="' +
+        (a.duracionAsignada || a.duracionSugerida) + '" title="Minutos asignados">' +
+      '<span class="etiqueta">min</span>' +
+    '</div>';
+
+  el.querySelector('.act__check').addEventListener('change', ev => {
+    a.seleccionada = ev.target.checked;
+    el.classList.toggle('is-on', a.seleccionada);
+    el.classList.toggle('is-off', !a.seleccionada);
+    recalcularTiempos(true);
+  });
+
+  el.querySelector('.act__min').addEventListener('change', ev => {
+    a.duracionAsignada = Math.max(5, Number(ev.target.value) || 5);
+    a.duracionSugerida = a.duracionAsignada;
+    if ($('#modoReparto').value === 'manual') recalcularTiempos(true);
+  });
+
+  return el;
+}
+
+$('#filtrosFase').addEventListener('click', e => {
+  const b = e.target.closest('.filtro');
+  if (!b) return;
+  S.filtroFase = b.dataset.fase;
+  renderPaso2();
+});
+
+$('#listaMomentos').addEventListener('click', async e => {
+  const btn = e.target.closest('[data-regenerar]');
+  if (btn) {
+    const i = Number(btn.dataset.regenerar);
+    const m = S.proyecto.momentos[i];
+    cargando(true, 'Buscando otras actividades…', 'Solo para el momento «' + m.momento + '».');
+    try {
+      const nuevas = await pedir('regenerarMomento', S.insumos, m.fase, m.momento, m.actividades);
+      if (!nuevas.length) throw new Error('La IA no devolvió actividades nuevas.');
+      m.actividades = m.actividades.concat(nuevas);
+      renderPaso2();
+      await recalcularTiempos(true);
+      toast('Se agregaron ' + nuevas.length + ' actividades nuevas.');
+    } catch (err) {
+      toast(err.message, 'error', 7000);
+    } finally {
+      cargando(false);
+    }
+    return;
+  }
+  const head = e.target.closest('.momento__head');
+  if (head && !e.target.closest('button')) head.parentElement.classList.toggle('is-cerrado');
+});
+
+$('#btnRecalcular').addEventListener('click', () => recalcularTiempos());
+$('#modoReparto').addEventListener('change', () => recalcularTiempos());
+
+$('#btnVerExplicacion').addEventListener('click', () => {
+  const e = S.proyecto.explicacion || {};
+  let html = '';
+  if (e.resumen) html += '<p>' + escapar(e.resumen) + '</p>';
+  if (e.relevanciaComunitaria) html += '<h4>Relevancia comunitaria</h4><p>' + escapar(e.relevanciaComunitaria) + '</p>';
+  if ((e.conceptosClave || []).length) {
+    html += '<h4>Conceptos clave</h4>' + e.conceptosClave.map(c =>
+      '<p><b>' + escapar(c.titulo) + ':</b> ' + escapar(c.texto) + '</p>').join('');
+  }
+  if ((e.erroresFrecuentes || []).length) {
+    html += '<h4>Errores frecuentes</h4><ul>' +
+      e.erroresFrecuentes.map(x => '<li>' + escapar(x) + '</li>').join('') + '</ul>';
+  }
+  $('#cuerpoExplicacion').innerHTML = html || '<p class="vacio">Sin explicación disponible.</p>';
+  abrirModal('#modalExplicacion');
+});
+
+$('#btnIrPlantilla').addEventListener('click', async () => {
+  if (!seleccionadas().length) return toast('Elige al menos una actividad.', 'alerta');
+  if (!S.distribucion) await recalcularTiempos(true);
+  construirBloques();
+  if (!S.plantilla.filas.length) aplicarPreajuste('clasica');
+  renderPaleta();
+  renderRejilla();
+  irAPaso(3);
+});
+
+/* ────────────────────────────────── 6. Catálogo de bloques ── */
+
+let BLOQUES = [];
+let MAPA_BLOQUES = {};
+
+const P_TXT   = texto => ({ tipo: 'texto', texto: texto });
+const P_TIT   = texto => ({ tipo: 'titulo', texto: texto });
+const P_VIN   = texto => ({ tipo: 'vineta', texto: texto });
+const P_CLAVE = (etiqueta, texto) => ({ tipo: 'clave', etiqueta: etiqueta, texto: texto });
+
+function bloque(id, nombre, grupo, icono, fn) {
+  return { id, nombre, grupo, icono, parrafos: fn };
+}
+
+function listaVinetas(arr) {
+  return (arr || []).filter(Boolean).map(P_VIN);
+}
+
+function parrafosActividad(a, conDetalle) {
+  const out = [P_TIT(a.titulo)];
+  if (a.descripcion) out.push(P_TXT(a.descripcion));
+  if (conDetalle) {
+    if (a.consignaAlumno) out.push(P_CLAVE('Consigna', a.consignaAlumno));
+    if (a.evidencia) out.push(P_CLAVE('Evidencia', a.evidencia));
+    if (a.participacionComunitaria && !/^ningun/i.test(a.participacionComunitaria)) {
+      out.push(P_CLAVE('Comunidad', a.participacionComunitaria));
+    }
+    if ((a.recursos || []).length) out.push(P_CLAVE('Recursos', a.recursos.join(', ')));
+  }
+  out.push(P_CLAVE('Tiempo', minutos(a.duracionAsignada || a.duracionSugerida)));
+  return out;
+}
+
+function construirBloques() {
+  const p = S.proyecto;
+  const d = S.distribucion;
+  const B = [];
+
+  /* Identidad del proyecto */
+  B.push(bloque('titulo_proyecto', 'Título del proyecto', 'Identidad', '🏷️', () => [P_TXT(p.tituloProyecto)]));
+  B.push(bloque('problematica', 'Problemática', 'Identidad', '❗', () => [P_TXT(p.problematica)]));
+  B.push(bloque('producto_final', 'Producto final', 'Identidad', '🎁', () => [P_TXT(p.productoFinal)]));
+  B.push(bloque('campos_formativos', 'Campos formativos', 'Identidad', '🧭', () => listaVinetas(p.camposFormativos)));
+  B.push(bloque('ejes_articuladores', 'Ejes articuladores', 'Identidad', '🔗', () => listaVinetas(p.ejesArticuladores)));
+  B.push(bloque('contenidos', 'Contenidos', 'Identidad', '📘', () => listaVinetas(p.contenidos)));
+  B.push(bloque('pda', 'Procesos de desarrollo (PDA)', 'Identidad', '📈', () => listaVinetas(p.pda)));
+
+  /* Explicación del tema */
+  const e = p.explicacion || {};
+  B.push(bloque('explicacion_resumen', 'Explicación del tema', 'Explicación', '📖', () => [P_TXT(e.resumen)]));
+  B.push(bloque('explicacion_relevancia', 'Relevancia comunitaria', 'Explicación', '🏘️', () => [P_TXT(e.relevanciaComunitaria)]));
+  B.push(bloque('conceptos_clave', 'Conceptos clave', 'Explicación', '🔑', () =>
+    (e.conceptosClave || []).map(c => P_CLAVE(c.titulo, c.texto))));
+  B.push(bloque('errores_frecuentes', 'Errores frecuentes', 'Explicación', '⚠️', () => listaVinetas(e.erroresFrecuentes)));
+
+  /* Fases completas */
+  ['Planeación', 'Acción', 'Intervención'].forEach(fase => {
+    const clave = 'fase_' + fase.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    B.push(bloque(clave, 'Fase ' + fase + ' (completa)', 'Fases', '🧩', () => {
+      const out = [];
+      p.momentos.filter(m => m.fase === fase).forEach(m => {
+        const elegidas = (m.actividades || []).filter(a => a.seleccionada !== false);
+        if (!elegidas.length) return;
+        out.push(P_TIT(m.momento));
+        elegidas.forEach(a => {
+          out.push(P_VIN(a.titulo + ' — ' + minutos(a.duracionAsignada)));
+          if (a.descripcion) out.push(P_TXT(a.descripcion));
+        });
+      });
+      return out;
+    }));
+  });
+
+  /* Momentos, uno por uno */
+  p.momentos.forEach((m, i) => {
+    const n = i + 1;
+    B.push(bloque('momento_' + n, n + '. ' + m.momento, 'Momentos', '🔹', () => {
+      const elegidas = (m.actividades || []).filter(a => a.seleccionada !== false);
+      if (!elegidas.length) return [P_TXT('(sin actividades seleccionadas)')];
+      const out = [];
+      elegidas.forEach(a => parrafosActividad(a, true).forEach(x => out.push(x)));
+      return out;
+    }));
+    B.push(bloque('momento_' + n + '_lista', n + '. ' + m.momento + ' (solo títulos)', 'Momentos', '▫️', () =>
+      listaVinetas((m.actividades || []).filter(a => a.seleccionada !== false).map(a => a.titulo))));
+    B.push(bloque('momento_' + n + '_tiempo', n + '. ' + m.momento + ' (tiempo)', 'Momentos', '⏱️', () => {
+      const t = (m.actividades || []).filter(a => a.seleccionada !== false)
+        .reduce((s, a) => s + (a.duracionAsignada || 0), 0);
+      return [P_TXT(minutos(t))];
+    }));
+    B.push(bloque('momento_' + n + '_nombre', n + '. ' + m.momento + ' (nombre)', 'Momentos', '🔖', () =>
+      [P_TXT(m.fase + ' · ' + m.momento)]));
+  });
+
+  /* Actividades sueltas */
+  seleccionadas().forEach(a => {
+    B.push(bloque(a.id, a.titulo, 'Actividades', '✏️', () => parrafosActividad(a, true)));
+  });
+
+  /* Tiempos y agenda */
+  B.push(bloque('tiempo_total', 'Tiempo total', 'Tiempos', '⏳', () =>
+    [P_TXT(d ? minutos(d.totalAsignado) + ' en ' + d.sesionesUsadas + ' sesiones' : '')]));
+  B.push(bloque('distribucion_fases', 'Distribución por fase', 'Tiempos', '📊', () =>
+    (d ? d.porFase : []).map(f => P_CLAVE(f.nombre, minutos(f.minutos) + ' (' + f.porcentaje + '%)'))));
+  B.push(bloque('agenda_sesiones', 'Agenda de sesiones', 'Tiempos', '🗓️', () => {
+    const out = [];
+    (d ? d.sesiones : []).forEach(s => {
+      out.push(P_TIT('Sesión ' + s.numero + ' · ' + minutos(s.minutosUsados)));
+      s.bloques.forEach(b => out.push(P_VIN(b.titulo + ' (' + minutos(b.minutos) + ')')));
+    });
+    return out;
+  }));
+  (d ? d.sesiones : []).forEach(s => {
+    B.push(bloque('sesion_' + s.numero, 'Sesión ' + s.numero, 'Tiempos', '📅', () =>
+      s.bloques.map(b => P_VIN(b.titulo + ' — ' + minutos(b.minutos)))));
+  });
+
+  /* Evaluación */
+  const ev = p.evaluacion || {};
+  B.push(bloque('evaluacion_enfoque', 'Enfoque de evaluación', 'Evaluación', '🎯', () => [P_TXT(ev.enfoque)]));
+  B.push(bloque('evaluacion_instrumentos', 'Instrumentos', 'Evaluación', '🧪', () =>
+    (ev.instrumentos || []).map(x => P_CLAVE(x.nombre, x.descripcion + (x.momentoDeUso ? ' (' + x.momentoDeUso + ')' : '')))));
+  B.push(bloque('evaluacion_criterios', 'Criterios', 'Evaluación', '📏', () => listaVinetas(ev.criterios)));
+  B.push(bloque('evaluacion_indicadores', 'Indicadores de logro', 'Evaluación', '⭐', () => listaVinetas(ev.indicadoresLogro)));
+
+  /* Recursos y ajustes */
+  B.push(bloque('recursos', 'Recursos y materiales', 'Recursos', '🎒', () => listaVinetas(p.recursosConsolidados)));
+  B.push(bloque('adecuaciones', 'Adecuaciones', 'Recursos', '♿', () =>
+    (p.adecuaciones || []).map(a => P_CLAVE(a.situacion, a.ajuste))));
+  B.push(bloque('vinculacion_familias', 'Vinculación con familias', 'Recursos', '👪', () =>
+    [P_TXT(p.vinculacionFamilias)]));
+
+  /* Datos institucionales */
+  const metas = [
+    ['docente', 'Docente'], ['escuela', 'Escuela'], ['cct', 'CCT'], ['zona', 'Zona / sector'],
+    ['ciclo', 'Ciclo escolar'], ['gradoGrupo', 'Grado y grupo'], ['asignatura', 'Asignatura'],
+    ['periodo', 'Periodo'], ['director', 'Director(a)']
+  ];
+  metas.forEach(([k, etiqueta]) => {
+    B.push(bloque('meta_' + k, etiqueta, 'Datos', '🏫', () => [P_TXT(S.plantilla.meta[k] || '')]));
+  });
+  B.push(bloque('meta_fecha', 'Fecha de elaboración', 'Datos', '📆', () =>
+    [P_TXT(new Date().toLocaleDateString('es-MX', { day: '2-digit', month: 'long', year: 'numeric' }))]));
+
+  BLOQUES = B;
+  MAPA_BLOQUES = {};
+  B.forEach(b => { MAPA_BLOQUES[b.id] = b; });
+}
+
+/** Devuelve los párrafos ya resueltos de un bloque (o un aviso si no existe). */
+function parrafosDe(id) {
+  const b = MAPA_BLOQUES[id];
+  if (!b) return [P_TXT('[bloque «' + id + '» no disponible]')];
+  try {
+    return (b.parrafos() || []).filter(p => (p.texto && String(p.texto).trim()) || p.etiqueta);
+  } catch (err) {
+    return [P_TXT('[error al resolver «' + id + '»]')];
+  }
+}
+
+/** Versión en texto plano, para sustituir {{marcadores}} dentro del texto libre. */
+function textoPlanoDe(id) {
+  return parrafosDe(id).map(p => {
+    if (p.etiqueta && p.texto) return p.etiqueta + ': ' + p.texto;
+    return p.etiqueta || p.texto;
+  }).join('\n');
+}
+
+const bloquesUsados = () => {
+  const usados = new Set();
+  S.plantilla.filas.forEach(f => f.celdas.forEach(c => {
+    (c.bloques || []).forEach(b => usados.add(b));
+    (String(c.texto || '').match(/\{\{\s*([\w-]+)\s*\}\}/g) || []).forEach(m =>
+      usados.add(m.replace(/[{}\s]/g, '')));
+  }));
+  return usados;
+};
+
+function renderPaleta() {
+  const filtro = $('#buscarBloque').value.trim().toLowerCase();
+  const usados = bloquesUsados();
+  const grupos = {};
+
+  BLOQUES.forEach(b => {
+    if (filtro && b.nombre.toLowerCase().indexOf(filtro) === -1 && b.id.indexOf(filtro) === -1) return;
+    (grupos[b.grupo] = grupos[b.grupo] || []).push(b);
+  });
+
+  const cont = $('#paletaLista');
+  cont.innerHTML = '';
+
+  Object.keys(grupos).forEach(g => {
+    const div = document.createElement('div');
+    div.className = 'grupo-bloques';
+    div.innerHTML = '<h4>' + escapar(g) + '</h4><div class="grupo-bloques__items"></div>';
+    const items = div.querySelector('.grupo-bloques__items');
+
+    grupos[g].forEach(b => {
+      const el = document.createElement('div');
+      el.className = 'bloque' + (usados.has(b.id) ? ' is-usado' : '');
+      el.draggable = true;
+      el.dataset.bloque = b.id;
+      el.title = b.nombre + '  ·  {{' + b.id + '}}';
+      el.innerHTML = '<span class="bloque__icono">' + b.icono + '</span>' +
+                     '<span class="bloque__nombre">' + escapar(b.nombre) + '</span>';
+      items.appendChild(el);
+    });
+    cont.appendChild(div);
+  });
+
+  if (!cont.children.length) cont.innerHTML = '<p class="vacio">Sin coincidencias.</p>';
+}
+
+$('#buscarBloque').addEventListener('input', renderPaleta);
+
+/* ─────────────────────── 7. Paso 3 · Editor drag & drop de la rejilla ── */
+
+function celdaNueva(tipo) {
+  return {
+    texto: '', bloques: [], colspan: 1, rowspan: 1, oculta: false,
+    tipo: tipo || 'normal',
+    estilo: { fondo: '', color: '', negrita: false, alineacion: '', tamano: 0 }
+  };
+}
+
+function filaNueva(columnas, tipo) {
+  const celdas = [];
+  for (let i = 0; i < columnas; i++) celdas.push(celdaNueva(tipo));
+  return { celdas };
+}
+
+function renderRejilla() {
+  const P = S.plantilla;
+  const tabla = $('#rejilla');
+  tabla.innerHTML = '';
+
+  const colgroup = document.createElement('colgroup');
+  for (let c = 0; c < P.columnas; c++) {
+    const col = document.createElement('col');
+    if (P.anchos && P.anchos[c]) col.style.width = P.anchos[c] + '%';
+    colgroup.appendChild(col);
+  }
+  tabla.appendChild(colgroup);
+
+  const tbody = document.createElement('tbody');
+
+  P.filas.forEach((fila, f) => {
+    const tr = document.createElement('tr');
+    fila.celdas.forEach((celda, c) => {
+      if (celda.oculta) return;
+
+      const td = document.createElement('td');
+      if (celda.colspan > 1) td.colSpan = celda.colspan;
+      if (celda.rowspan > 1) td.rowSpan = celda.rowspan;
+
+      const div = document.createElement('div');
+      div.className = 'celda' + (celda.tipo === 'encabezado' ? ' es-encabezado' : '') +
+        (S.sel && S.sel.f === f && S.sel.c === c ? ' is-sel' : '');
+      div.dataset.f = f;
+      div.dataset.c = c;
+      if (celda.estilo.fondo) div.style.background = celda.estilo.fondo;
+      if (celda.estilo.color) div.style.color = celda.estilo.color;
+      if (celda.estilo.negrita) div.style.fontWeight = '700';
+      if (celda.estilo.alineacion) div.style.textAlign = alineacionCSS(celda.estilo.alineacion);
+
+      const txt = document.createElement('div');
+      txt.className = 'celda__texto';
+      txt.contentEditable = 'true';
+      txt.spellcheck = false;
+      txt.textContent = celda.texto || '';
+      div.appendChild(txt);
+
+      if ((celda.bloques || []).length) {
+        const fichas = document.createElement('div');
+        fichas.className = 'celda__fichas';
+        celda.bloques.forEach((id, k) => {
+          const b = MAPA_BLOQUES[id];
+          const ficha = document.createElement('span');
+          ficha.className = 'ficha';
+          ficha.innerHTML = '<span>' + escapar(b ? b.nombre : id) + '</span>' +
+                            '<button type="button" data-quitar="' + k + '" title="Quitar">✕</button>';
+          fichas.appendChild(ficha);
+        });
+        div.appendChild(fichas);
+      }
+
+      td.appendChild(div);
+      tr.appendChild(td);
+    });
+    tbody.appendChild(tr);
+  });
+
+  tabla.appendChild(tbody);
+  renderPropsCelda();
+  renderPaleta();
+}
+
+function alineacionCSS(a) {
+  return a === 'centro' ? 'center' : a === 'derecha' ? 'right' : a === 'justificado' ? 'justify' : 'left';
+}
+
+function celdaSel() {
+  if (!S.sel) return null;
+  const fila = S.plantilla.filas[S.sel.f];
+  return fila ? fila.celdas[S.sel.c] : null;
+}
+
+/* --- Interacción con la rejilla ---------------------------------------- */
+
+$('#rejilla').addEventListener('click', e => {
+  const quitar = e.target.closest('[data-quitar]');
+  if (quitar) {
+    const div = quitar.closest('.celda');
+    const celda = S.plantilla.filas[+div.dataset.f].celdas[+div.dataset.c];
+    celda.bloques.splice(Number(quitar.dataset.quitar), 1);
+    renderRejilla();
+    return;
+  }
+  const div = e.target.closest('.celda');
+  if (!div) return;
+  S.sel = { f: +div.dataset.f, c: +div.dataset.c };
+  $$('.celda').forEach(x => x.classList.remove('is-sel'));
+  div.classList.add('is-sel');
+  renderPropsCelda();
+});
+
+$('#rejilla').addEventListener('blur', e => {
+  if (!e.target.classList || !e.target.classList.contains('celda__texto')) return;
+  const div = e.target.closest('.celda');
+  const celda = S.plantilla.filas[+div.dataset.f].celdas[+div.dataset.c];
+  celda.texto = e.target.textContent;
+  renderPaleta();
+}, true);
+
+/* --- Arrastrar y soltar ------------------------------------------------ */
+
+document.addEventListener('dragstart', e => {
+  const b = e.target.closest('.bloque');
+  if (!b) return;
+  e.dataTransfer.setData('text/plain', b.dataset.bloque);
+  e.dataTransfer.effectAllowed = 'copy';
+  b.classList.add('is-dragging');
+});
+
+document.addEventListener('dragend', e => {
+  const b = e.target.closest('.bloque');
+  if (b) b.classList.remove('is-dragging');
+  $$('.celda').forEach(c => c.classList.remove('is-drop'));
+});
+
+$('#rejilla').addEventListener('dragover', e => {
+  const div = e.target.closest('.celda');
+  if (!div) return;
+  e.preventDefault();
+  e.dataTransfer.dropEffect = 'copy';
+  div.classList.add('is-drop');
+});
+
+$('#rejilla').addEventListener('dragleave', e => {
+  const div = e.target.closest('.celda');
+  if (div) div.classList.remove('is-drop');
+});
+
+$('#rejilla').addEventListener('drop', e => {
+  const div = e.target.closest('.celda');
+  if (!div) return;
+  e.preventDefault();
+  div.classList.remove('is-drop');
+  const id = e.dataTransfer.getData('text/plain');
+  if (!id || !MAPA_BLOQUES[id]) return;
+  insertarBloqueEn(+div.dataset.f, +div.dataset.c, id);
+});
+
+// Doble clic en la paleta: inserta en la celda seleccionada.
+$('#paletaLista').addEventListener('dblclick', e => {
+  const b = e.target.closest('.bloque');
+  if (!b) return;
+  if (!S.sel) return toast('Selecciona primero una celda de la tabla.', 'alerta');
+  insertarBloqueEn(S.sel.f, S.sel.c, b.dataset.bloque);
+});
+
+function insertarBloqueEn(f, c, id) {
+  const celda = S.plantilla.filas[f].celdas[c];
+  celda.bloques = celda.bloques || [];
+  if (celda.bloques.indexOf(id) !== -1) return toast('Ese bloque ya está en la celda.', 'alerta');
+  celda.bloques.push(id);
+  S.sel = { f, c };
+  renderRejilla();
+}
+
+/* --- Barra de herramientas de la tabla --------------------------------- */
+
+$('.tablero__barra').addEventListener('click', e => {
+  const btn = e.target.closest('[data-accion]');
+  if (!btn) return;
+  const P = S.plantilla;
+  const celda = celdaSel();
+
+  switch (btn.dataset.accion) {
+    case 'fila-add':
+      P.filas.splice(S.sel ? S.sel.f + 1 : P.filas.length, 0, filaNueva(P.columnas));
+      break;
+
+    case 'fila-del':
+      if (P.filas.length <= 1) return toast('Debe quedar al menos una fila.', 'alerta');
+      P.filas.splice(S.sel ? S.sel.f : P.filas.length - 1, 1);
+      S.sel = null;
+      normalizarSpans();
+      break;
+
+    case 'col-add':
+      P.columnas++;
+      P.filas.forEach(f => f.celdas.push(celdaNueva()));
+      P.anchos = repartirAnchos(P.columnas);
+      break;
+
+    case 'col-del':
+      if (P.columnas <= 1) return toast('Debe quedar al menos una columna.', 'alerta');
+      P.columnas--;
+      P.filas.forEach(f => f.celdas.pop());
+      P.anchos = repartirAnchos(P.columnas);
+      normalizarSpans();
+      S.sel = null;
+      break;
+
+    case 'fusionar-h': fusionar('h'); break;
+    case 'fusionar-v': fusionar('v'); break;
+
+    case 'separar':
+      if (!celda) return toast('Selecciona una celda.', 'alerta');
+      for (let r = S.sel.f; r < S.sel.f + celda.rowspan; r++) {
+        for (let k = S.sel.c; k < S.sel.c + celda.colspan; k++) {
+          if (r === S.sel.f && k === S.sel.c) continue;
+          if (P.filas[r] && P.filas[r].celdas[k]) P.filas[r].celdas[k].oculta = false;
+        }
+      }
+      celda.colspan = 1; celda.rowspan = 1;
+      break;
+
+    case 'encabezado':
+      if (!celda) return toast('Selecciona una celda.', 'alerta');
+      celda.tipo = celda.tipo === 'encabezado' ? 'normal' : 'encabezado';
+      break;
+
+    case 'limpiar-celda':
+      if (!celda) return toast('Selecciona una celda.', 'alerta');
+      celda.texto = ''; celda.bloques = [];
+      break;
+  }
+  renderRejilla();
+});
+
+function repartirAnchos(n) {
+  const base = Math.floor(100 / n);
+  const anchos = new Array(n).fill(base);
+  anchos[n - 1] += 100 - base * n;
+  return anchos;
+}
+
+/** Recorta spans que se salgan de la rejilla tras borrar filas o columnas. */
+function normalizarSpans() {
+  const P = S.plantilla;
+  P.filas.forEach((fila, f) => {
+    fila.celdas.forEach((celda, c) => {
+      celda.colspan = Math.min(celda.colspan, P.columnas - c);
+      celda.rowspan = Math.min(celda.rowspan, P.filas.length - f);
+    });
+  });
+  // Se recalcula qué celdas quedan cubiertas por una fusión.
+  P.filas.forEach(f => f.celdas.forEach(c => { c.oculta = false; }));
+  P.filas.forEach((fila, f) => {
+    fila.celdas.forEach((celda, c) => {
+      if (celda.oculta || (celda.colspan === 1 && celda.rowspan === 1)) return;
+      for (let r = f; r < f + celda.rowspan; r++) {
+        for (let k = c; k < c + celda.colspan; k++) {
+          if (r === f && k === c) continue;
+          if (P.filas[r] && P.filas[r].celdas[k]) P.filas[r].celdas[k].oculta = true;
+        }
+      }
+    });
+  });
+}
+
+function fusionar(direccion) {
+  const P = S.plantilla;
+  const celda = celdaSel();
+  if (!celda) return toast('Selecciona una celda.', 'alerta');
+  const { f, c } = S.sel;
+
+  if (direccion === 'h') {
+    const destino = c + celda.colspan;
+    if (destino >= P.columnas) return toast('No hay columna a la derecha.', 'alerta');
+    for (let r = f; r < f + celda.rowspan; r++) {
+      const cc = P.filas[r] && P.filas[r].celdas[destino];
+      if (!cc || cc.oculta || cc.colspan > 1 || cc.rowspan > 1) {
+        return toast('Esa celda ya forma parte de otra combinación.', 'alerta');
+      }
+    }
+    for (let r = f; r < f + celda.rowspan; r++) vaciarYOcultar(P.filas[r].celdas[destino]);
+    celda.colspan++;
+  } else {
+    const destino = f + celda.rowspan;
+    if (destino >= P.filas.length) return toast('No hay fila debajo.', 'alerta');
+    for (let k = c; k < c + celda.colspan; k++) {
+      const cc = P.filas[destino].celdas[k];
+      if (!cc || cc.oculta || cc.colspan > 1 || cc.rowspan > 1) {
+        return toast('Esa celda ya forma parte de otra combinación.', 'alerta');
+      }
+    }
+    for (let k = c; k < c + celda.colspan; k++) vaciarYOcultar(P.filas[destino].celdas[k]);
+    celda.rowspan++;
+  }
+}
+
+function vaciarYOcultar(celda) {
+  celda.oculta = true;
+  celda.texto = '';
+  celda.bloques = [];
+  celda.colspan = 1;
+  celda.rowspan = 1;
+}
+
+/* --- Panel de propiedades de la celda ---------------------------------- */
+
+function renderPropsCelda() {
+  const cont = $('#propsCelda');
+  const celda = celdaSel();
+  if (!celda) {
+    cont.innerHTML = '<p class="vacio">Selecciona una celda de la tabla.</p>';
+    return;
+  }
+  cont.innerHTML =
+    '<label class="campo campo--mini"><span>Fondo</span>' +
+      '<input type="color" data-cp="fondo" value="' + (celda.estilo.fondo || '#ffffff') + '"></label>' +
+    '<label class="campo campo--mini"><span>Texto</span>' +
+      '<input type="color" data-cp="color" value="' + (celda.estilo.color || '#1f2430') + '"></label>' +
+    '<label class="campo campo--mini"><span>Alineación</span>' +
+      '<select data-cp="alineacion">' +
+        ['izquierda', 'centro', 'derecha', 'justificado'].map(a =>
+          '<option value="' + a + '"' + (celda.estilo.alineacion === a ? ' selected' : '') + '>' + a + '</option>').join('') +
+      '</select></label>' +
+    '<label class="campo campo--mini"><span>Tamaño</span>' +
+      '<input type="number" data-cp="tamano" min="0" max="20" value="' + (celda.estilo.tamano || 0) + '" title="0 = tamaño base"></label>' +
+    '<label class="check"><input type="checkbox" data-cp="negrita"' + (celda.estilo.negrita ? ' checked' : '') + '> Negritas</label>' +
+    '<div class="props__fila">' +
+      '<button class="btn btn--mini" data-cp-accion="reset">Restablecer estilo</button>' +
+    '</div>' +
+    '<p class="vacio">Fila ' + (S.sel.f + 1) + ', columna ' + (S.sel.c + 1) +
+      ' · ' + celda.colspan + '×' + celda.rowspan + '</p>';
+
+  cont.querySelectorAll('[data-cp]').forEach(input => {
+    input.addEventListener('change', () => {
+      const k = input.dataset.cp;
+      celda.estilo[k] = input.type === 'checkbox' ? input.checked
+        : input.type === 'number' ? Number(input.value)
+        : input.value;
+      renderRejilla();
+    });
+  });
+  const reset = cont.querySelector('[data-cp-accion="reset"]');
+  if (reset) reset.addEventListener('click', () => {
+    celda.estilo = { fondo: '', color: '', negrita: false, alineacion: '', tamano: 0 };
+    renderRejilla();
+  });
+}
+
+/* --- Estilo global y metadatos ---------------------------------------- */
+
+const CAMPOS_ESTILO = {
+  estiloColorPrimario: 'colorPrimario',
+  estiloFondoEncabezado: 'fondoEncabezado',
+  estiloColorEncabezado: 'colorEncabezado',
+  estiloColorBorde: 'colorBorde',
+  estiloAnchoBorde: 'anchoBorde',
+  estiloFuente: 'fuente',
+  estiloTamano: 'tamano'
+};
+
+Object.keys(CAMPOS_ESTILO).forEach(id => {
+  $('#' + id).addEventListener('change', e => {
+    const clave = CAMPOS_ESTILO[id];
+    S.plantilla.estilo[clave] = e.target.type === 'number' ? Number(e.target.value) : e.target.value;
+  });
+});
+$('#estiloOrientacion').addEventListener('change', e => { S.plantilla.orientacion = e.target.value; });
+
+$$('#propsMeta [data-meta]').forEach(input => {
+  input.addEventListener('input', e => {
+    S.plantilla.meta[e.target.dataset.meta] = e.target.value;
+  });
+});
+
+$('#btnGuardarPerfil').addEventListener('click', async () => {
+  try {
+    await llamar('guardarPerfilDocente', S.plantilla.meta);
+    toast('Tus datos quedaron guardados para las próximas planeaciones.');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+});
+
+/* --- Diseños base ------------------------------------------------------ */
+
+$('#preajuste').addEventListener('change', e => {
+  if (!e.target.value) return;
+  aplicarPreajuste(e.target.value);
+  renderRejilla();
+  e.target.value = '';
+  toast('Diseño base aplicado.');
+});
+
+function celdaCon(texto, bloques, tipo, estilo) {
+  const c = celdaNueva(tipo);
+  c.texto = texto || '';
+  c.bloques = bloques || [];
+  if (estilo) Object.assign(c.estilo, estilo);
+  return c;
+}
+
+function filaCon(celdas, columnas) {
+  while (celdas.length < columnas) celdas.push(celdaNueva());
+  return { celdas: celdas.slice(0, columnas) };
+}
+
+function aplicarPreajuste(nombre) {
+  const P = S.plantilla;
+  const p = S.proyecto;
+  P.filas = [];
+
+  if (nombre === 'clasica') {
+    P.columnas = 4;
+    P.anchos = [20, 44, 12, 24];
+    P.filas.push(filaCon([
+      celdaCon('Fase y momento', [], 'encabezado'),
+      celdaCon('Actividades', [], 'encabezado'),
+      celdaCon('Tiempo', [], 'encabezado'),
+      celdaCon('Evidencias y evaluación', [], 'encabezado')
+    ], 4));
+    (p ? p.momentos : []).forEach((m, i) => {
+      const n = i + 1;
+      P.filas.push(filaCon([
+        celdaCon('', ['momento_' + n + '_nombre']),
+        celdaCon('', ['momento_' + n]),
+        celdaCon('', ['momento_' + n + '_tiempo'], null, { alineacion: 'centro' }),
+        celdaCon('', [])
+      ], 4));
+    });
+    P.filas.push(filaCon([
+      celdaCon('Evaluación', [], 'encabezado'),
+      celdaCon('', ['evaluacion_instrumentos', 'evaluacion_criterios']),
+      celdaCon('Recursos', [], 'encabezado'),
+      celdaCon('', ['recursos'])
+    ], 4));
+
+  } else if (nombre === 'sesiones') {
+    P.columnas = 4;
+    P.anchos = [10, 52, 12, 26];
+    P.filas.push(filaCon([
+      celdaCon('Sesión', [], 'encabezado'),
+      celdaCon('Actividades', [], 'encabezado'),
+      celdaCon('Tiempo', [], 'encabezado'),
+      celdaCon('Observaciones', [], 'encabezado')
+    ], 4));
+    ((S.distribucion || {}).sesiones || []).forEach(s => {
+      P.filas.push(filaCon([
+        celdaCon('Sesión ' + s.numero, [], null, { alineacion: 'centro' }),
+        celdaCon('', ['sesion_' + s.numero]),
+        celdaCon(minutos(s.minutosUsados), [], null, { alineacion: 'centro' }),
+        celdaCon('', [])
+      ], 4));
+    });
+
+  } else if (nombre === 'fases') {
+    P.columnas = 3;
+    P.anchos = [34, 33, 33];
+    P.filas.push(filaCon([
+      celdaCon('Fase 1 · Planeación', [], 'encabezado'),
+      celdaCon('Fase 2 · Acción', [], 'encabezado'),
+      celdaCon('Fase 3 · Intervención', [], 'encabezado')
+    ], 3));
+    P.filas.push(filaCon([
+      celdaCon('', ['fase_planeacion']),
+      celdaCon('', ['fase_accion']),
+      celdaCon('', ['fase_intervencion'])
+    ], 3));
+
+  } else if (nombre === 'compacta') {
+    P.columnas = 2;
+    P.anchos = [26, 74];
+    [
+      ['Proyecto', 'titulo_proyecto'],
+      ['Problemática', 'problematica'],
+      ['Producto final', 'producto_final'],
+      ['Campos formativos', 'campos_formativos'],
+      ['Ejes articuladores', 'ejes_articuladores'],
+      ['PDA', 'pda'],
+      ['Explicación del tema', 'explicacion_resumen'],
+      ['Secuencia de actividades', 'agenda_sesiones'],
+      ['Evaluación', 'evaluacion_criterios'],
+      ['Recursos', 'recursos'],
+      ['Adecuaciones', 'adecuaciones']
+    ].forEach(([etiqueta, bloqueId]) => {
+      P.filas.push(filaCon([
+        celdaCon(etiqueta, [], 'encabezado'),
+        celdaCon('', [bloqueId])
+      ], 2));
+    });
+
+  } else { // vacia
+    P.columnas = 4;
+    P.anchos = repartirAnchos(4);
+    for (let i = 0; i < 4; i++) P.filas.push(filaNueva(4));
+  }
+
+  S.sel = null;
+  normalizarSpans();
+}
+
+/* ─────────────────── 8. Paso 4 · Vista previa y documento ── */
+
+/** Resuelve una celda a una lista de párrafos listos para el documento. */
+function resolverCelda(celda) {
+  const parrafos = [];
+  const texto = String(celda.texto || '');
+
+  if (texto.trim()) {
+    // Sustituye {{marcador}} por el texto plano del bloque correspondiente.
+    const resuelto = texto.replace(/\{\{\s*([\w-]+)\s*\}\}/g, (_, id) => textoPlanoDe(id));
+    resuelto.split('\n').forEach(linea => {
+      if (linea.trim()) parrafos.push({ tipo: 'texto', texto: linea.trim(), etiqueta: '' });
+    });
+  }
+
+  (celda.bloques || []).forEach(id => {
+    parrafosDe(id).forEach(p => parrafos.push({
+      tipo: p.tipo || 'texto',
+      texto: p.texto || '',
+      etiqueta: p.etiqueta || ''
+    }));
+  });
+
+  return parrafos;
+}
+
+function gridResuelta() {
+  return {
+    columnas: S.plantilla.columnas,
+    anchos: S.plantilla.anchos,
+    filas: S.plantilla.filas.map(fila => ({
+      celdas: fila.celdas.map(celda => ({
+        colspan: celda.colspan,
+        rowspan: celda.rowspan,
+        oculta: !!celda.oculta,
+        tipo: celda.tipo,
+        estilo: celda.estilo,
+        parrafos: celda.oculta ? [] : resolverCelda(celda)
+      }))
+    }))
+  };
+}
+
+function metaResuelta() {
+  const m = S.plantilla.meta;
+  const etiquetas = {
+    docente: 'Docente', escuela: 'Escuela', cct: 'CCT', zona: 'Zona / sector',
+    ciclo: 'Ciclo escolar', gradoGrupo: 'Grado y grupo', asignatura: 'Asignatura',
+    periodo: 'Periodo', director: 'Director(a)'
+  };
+  return Object.keys(etiquetas)
+    .filter(k => String(m[k] || '').trim())
+    .map(k => ({ etiqueta: etiquetas[k], valor: m[k] }));
+}
+
+function anexosResueltos() {
+  if (!$('#optAnexos').checked) return [];
+  const anexos = [];
+  const agregar = (titulo, ids) => {
+    const parrafos = [];
+    ids.forEach(id => parrafosDe(id).forEach(p => parrafos.push(p)));
+    if (parrafos.length) anexos.push({ titulo, parrafos });
+  };
+  agregar('Explicación del tema', ['explicacion_resumen', 'explicacion_relevancia', 'conceptos_clave']);
+  agregar('Evaluación', ['evaluacion_enfoque', 'evaluacion_instrumentos', 'evaluacion_criterios', 'evaluacion_indicadores']);
+  agregar('Recursos y adecuaciones', ['recursos', 'adecuaciones', 'vinculacion_familias']);
+  agregar('Agenda de sesiones', ['agenda_sesiones']);
+  return anexos;
+}
+
+function parrafosAHtml(parrafos, estilo) {
+  let html = '';
+  let enLista = false;
+  parrafos.forEach(p => {
+    const contenido = p.etiqueta && p.texto
+      ? '<b>' + escapar(p.etiqueta) + ':</b> ' + escapar(p.texto)
+      : escapar(p.etiqueta || p.texto);
+    if (p.tipo === 'vineta') {
+      if (!enLista) { html += '<ul>'; enLista = true; }
+      html += '<li>' + contenido + '</li>';
+      return;
+    }
+    if (enLista) { html += '</ul>'; enLista = false; }
+    html += p.tipo === 'titulo'
+      ? '<p style="font-weight:700;color:' + estilo.colorPrimario + '">' + contenido + '</p>'
+      : '<p>' + contenido + '</p>';
+  });
+  if (enLista) html += '</ul>';
+  return html;
+}
+
+function renderPrevia() {
+  if (!S.proyecto) return;
+  construirBloques();
+
+  const estilo = S.plantilla.estilo;
+  const grid = gridResuelta();
+  const meta = metaResuelta();
+  const nombre = $('#nombreDocumento').value.trim() ||
+    ('Planeación · ' + (S.proyecto.tituloProyecto || 'Proyecto comunitario'));
+
+  const borde = estilo.anchoBorde > 0
+    ? estilo.anchoBorde + 'px solid ' + estilo.colorBorde
+    : 'none';
+
+  let html = '<h3 class="previa__titulo" style="color:' + estilo.colorPrimario + '">' +
+    escapar(nombre.toUpperCase()) + '</h3>';
+
+  if (meta.length) {
+    html += '<table style="border:' + borde + '"><tbody>';
+    for (let i = 0; i < meta.length; i += 2) {
+      html += '<tr>';
+      [meta[i], meta[i + 1]].forEach(par => {
+        if (!par) { html += '<td style="border:' + borde + '"></td><td style="border:' + borde + '"></td>'; return; }
+        html += '<td style="border:' + borde + ';background:' + estilo.fondoEncabezado +
+                ';color:' + estilo.colorEncabezado + ';font-weight:700">' + escapar(par.etiqueta) + '</td>' +
+                '<td style="border:' + borde + '">' + escapar(par.valor) + '</td>';
+      });
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+  }
+
+  html += '<table style="border:' + borde + ';font-family:' + estilo.fuente + '"><tbody>';
+  grid.filas.forEach(fila => {
+    html += '<tr>';
+    fila.celdas.forEach(celda => {
+      if (celda.oculta) return;
+      const ce = celda.estilo || {};
+      const fondo = ce.fondo || (celda.tipo === 'encabezado' ? estilo.fondoEncabezado : 'transparent');
+      const color = ce.color || (celda.tipo === 'encabezado' ? estilo.colorEncabezado : estilo.colorTexto);
+      html += '<td' +
+        (celda.colspan > 1 ? ' colspan="' + celda.colspan + '"' : '') +
+        (celda.rowspan > 1 ? ' rowspan="' + celda.rowspan + '"' : '') +
+        ' style="border:' + borde + ';background:' + fondo + ';color:' + color +
+        ';text-align:' + alineacionCSS(ce.alineacion || (celda.tipo === 'encabezado' ? 'centro' : 'izquierda')) +
+        ';font-weight:' + (ce.negrita || celda.tipo === 'encabezado' ? 700 : 400) +
+        ';font-size:' + ((ce.tamano || estilo.tamano) + 2) + 'px">' +
+        parrafosAHtml(celda.parrafos, estilo) + '</td>';
+    });
+    html += '</tr>';
+  });
+  html += '</tbody></table>';
+
+  anexosResueltos().forEach(a => {
+    html += '<h4 style="color:' + estilo.colorPrimario + '">' + escapar(a.titulo) + '</h4>' +
+            parrafosAHtml(a.parrafos, estilo);
+  });
+
+  $('#previa').innerHTML = html;
+}
+
+$('#btnIrDocumento').addEventListener('click', () => {
+  if (!$('#nombreDocumento').value.trim()) {
+    $('#nombreDocumento').value = 'Planeación · ' + (S.proyecto.tituloProyecto || 'Proyecto comunitario');
+  }
+  irAPaso(4);
+});
+$('#nombreDocumento').addEventListener('input', renderPrevia);
+$('#optAnexos').addEventListener('change', renderPrevia);
+
+$('#btnGenerarDoc').addEventListener('click', async () => {
+  construirBloques();
+  const payload = {
+    titulo: $('#nombreDocumento').value.trim() || ('Planeación · ' + S.proyecto.tituloProyecto),
+    docId: $('#optSobrescribir').checked ? S.docId : '',
+    orientacion: S.plantilla.orientacion,
+    estilo: S.plantilla.estilo,
+    meta: metaResuelta(),
+    grid: gridResuelta(),
+    anexos: anexosResueltos()
+  };
+
+  cargando(true, 'Escribiendo tu documento…', 'Construyendo la tabla en Google Docs.');
+  try {
+    const doc = await pedir('generarDocumento', payload);
+    S.docId = doc.docId;
+    S.docUrl = doc.url;
+
+    let extra = '';
+    if ($('#optPDF').checked) {
+      const pdf = await pedir('exportarPDF', doc.docId);
+      extra = '<a href="' + pdf.url + '" target="_blank" rel="noopener">Abrir el PDF</a>';
+    }
+
+    $('#resultadoDoc').hidden = false;
+    $('#resultadoDoc').innerHTML =
+      '<b>Documento listo:</b> ' + escapar(doc.nombre) +
+      '<div><a href="' + doc.url + '" target="_blank" rel="noopener">Abrir en Google Docs</a> ' + extra + '</div>' +
+      (doc.avisoFusion ? '<small>' + escapar(doc.avisoFusion) + '</small>' : '');
+
+    toast('Documento generado en tu Drive.');
+    await guardarTodo(true);
+  } catch (err) {
+    toast(err.message, 'error', 9000);
+  } finally {
+    cargando(false);
+  }
+});
+
+/* ──────────────────── 9. Biblioteca, plantillas y configuración ── */
+
+async function guardarTodo(silencioso) {
+  if (!S.proyecto) {
+    if (!silencioso) toast('Todavía no hay nada que guardar.', 'alerta');
+    return;
+  }
+  try {
+    const res = await pedir('guardarProyecto', {
+      id: S.proyecto.id,
+      archivoId: S.archivoId,
+      proyecto: S.proyecto,
+      distribucion: S.distribucion,
+      plantilla: S.plantilla,
+      docId: S.docId,
+      docUrl: S.docUrl
+    });
+    S.archivoId = res.archivoId;
+    if (!silencioso) toast('Planeación guardada en Drive.');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+}
+
+$('#btnGuardar').addEventListener('click', () => guardarTodo(false));
+
+$('#btnBiblioteca').addEventListener('click', async () => {
+  abrirModal('#modalBiblioteca');
+  const cont = $('#listaBiblioteca');
+  cont.innerHTML = '<p class="vacio">Cargando…</p>';
+  try {
+    const lista = await pedir('listarProyectos');
+    if (!lista.length) {
+      cont.innerHTML = '<p class="vacio">Aún no has guardado ninguna planeación.</p>';
+      return;
+    }
+    cont.innerHTML = lista.map(x =>
+      '<div class="item-lista">' +
+        '<div class="item-lista__txt"><b>' + escapar(x.titulo) + '</b>' +
+          '<small>' + escapar(x.nivel || '') + ' · actualizada el ' +
+          new Date(x.actualizado).toLocaleString('es-MX') + '</small></div>' +
+        '<div class="item-lista__acc">' +
+          '<button class="btn btn--mini" data-abrir="' + x.archivoId + '">Abrir</button>' +
+          '<button class="btn btn--mini" data-duplicar="' + x.archivoId + '">Duplicar</button>' +
+          (x.docUrl ? '<a class="btn btn--mini" href="' + x.docUrl + '" target="_blank" rel="noopener">Doc</a>' : '') +
+          '<button class="btn btn--mini btn--peligro" data-borrar="' + x.archivoId + '">Papelera</button>' +
+        '</div>' +
+      '</div>').join('');
+  } catch (err) {
+    cont.innerHTML = '<p class="vacio">' + escapar(err.message) + '</p>';
+  }
+});
+
+$('#listaBiblioteca').addEventListener('click', async e => {
+  const btn = e.target.closest('button[data-abrir],button[data-duplicar],button[data-borrar]');
+  if (!btn) return;
+
+  try {
+    if (btn.dataset.abrir) {
+      cargando(true, 'Abriendo la planeación…');
+      const estado = await pedir('cargarProyecto', btn.dataset.abrir);
+      S.proyecto = estado.proyecto;
+      S.insumos = estado.proyecto.insumos || {};
+      S.distribucion = estado.distribucion || null;
+      S.plantilla = estado.plantilla || S.plantilla;
+      S.archivoId = estado.archivoId;
+      S.docId = estado.docId || '';
+      S.docUrl = estado.docUrl || '';
+      volcarInsumosEnFormulario();
+      volcarEstiloEnControles();
+      construirBloques();
+      renderPaso2();
+      renderRejilla();
+      cerrarModal('#modalBiblioteca');
+      irAPaso(2);
+      toast('Planeación cargada.');
+    }
+
+    if (btn.dataset.duplicar) {
+      await pedir('duplicarProyecto', btn.dataset.duplicar);
+      toast('Copia creada.');
+      $('#btnBiblioteca').click();
+    }
+
+    if (btn.dataset.borrar) {
+      if (!confirm('¿Enviar esta planeación a la papelera de Drive?')) return;
+      await pedir('eliminarProyecto', btn.dataset.borrar);
+      toast('Enviada a la papelera.');
+      $('#btnBiblioteca').click();
+    }
+  } catch (err) {
+    toast(err.message, 'error');
+  } finally {
+    cargando(false);
+  }
+});
+
+function volcarInsumosEnFormulario() {
+  const f = $('#formInsumos');
+  const i = S.insumos || {};
+  ['tema', 'nivel', 'grado', 'campoFormativo', 'caracteristicasGrupo', 'recursos',
+   'contextoComunitario', 'sesiones', 'minutosPorSesion', 'semanas', 'actividadesPorMomento']
+    .forEach(k => { if (f[k] && i[k] != null) f[k].value = i[k]; });
+  actualizarChips();
+}
+
+function volcarEstiloEnControles() {
+  const e = S.plantilla.estilo || {};
+  Object.keys(CAMPOS_ESTILO).forEach(id => {
+    const valor = e[CAMPOS_ESTILO[id]];
+    if (valor != null) $('#' + id).value = valor;
+  });
+  $('#estiloOrientacion').value = S.plantilla.orientacion || 'vertical';
+  $$('#propsMeta [data-meta]').forEach(input => {
+    input.value = (S.plantilla.meta || {})[input.dataset.meta] || '';
+  });
+}
+
+/* --- Maquetados guardados --------------------------------------------- */
+
+$('#btnGuardarPlantilla').addEventListener('click', async () => {
+  const nombre = prompt('Nombre para este maquetado:', 'Formato de mi escuela');
+  if (!nombre) return;
+  try {
+    await pedir('guardarPlantilla', nombre, {
+      orientacion: S.plantilla.orientacion,
+      columnas: S.plantilla.columnas,
+      anchos: S.plantilla.anchos,
+      filas: S.plantilla.filas,
+      estilo: S.plantilla.estilo
+    });
+    toast('Maquetado guardado. Podrás reutilizarlo en otras planeaciones.');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+});
+
+$('#btnPlantillasGuardadas').addEventListener('click', async () => {
+  abrirModal('#modalPlantillas');
+  const cont = $('#listaPlantillas');
+  cont.innerHTML = '<p class="vacio">Cargando…</p>';
+  try {
+    const lista = await pedir('listarPlantillas');
+    cont.innerHTML = lista.length ? lista.map(x =>
+      '<div class="item-lista">' +
+        '<div class="item-lista__txt"><b>' + escapar(x.nombre) + '</b></div>' +
+        '<div class="item-lista__acc">' +
+          '<button class="btn btn--mini" data-usar="' + x.archivoId + '">Usar</button>' +
+          '<button class="btn btn--mini btn--peligro" data-borrar-plantilla="' + x.archivoId + '">Borrar</button>' +
+        '</div>' +
+      '</div>').join('') : '<p class="vacio">Todavía no guardas ningún maquetado.</p>';
+  } catch (err) {
+    cont.innerHTML = '<p class="vacio">' + escapar(err.message) + '</p>';
+  }
+});
+
+$('#listaPlantillas').addEventListener('click', async e => {
+  const btn = e.target.closest('button');
+  if (!btn) return;
+  try {
+    if (btn.dataset.usar) {
+      const datos = await pedir('cargarPlantilla', btn.dataset.usar);
+      const pl = datos.plantilla || {};
+      Object.assign(S.plantilla, {
+        orientacion: pl.orientacion || 'vertical',
+        columnas: pl.columnas || 4,
+        anchos: pl.anchos || repartirAnchos(pl.columnas || 4),
+        filas: pl.filas || [],
+        estilo: Object.assign(S.plantilla.estilo, pl.estilo || {})
+      });
+      S.sel = null;
+      volcarEstiloEnControles();
+      normalizarSpans();
+      renderRejilla();
+      cerrarModal('#modalPlantillas');
+      toast('Maquetado aplicado.');
+    }
+    if (btn.dataset.borrarPlantilla) {
+      await pedir('eliminarPlantilla', btn.dataset.borrarPlantilla);
+      $('#btnPlantillasGuardadas').click();
+    }
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+});
+
+/* --- Configuración de IA ---------------------------------------------- */
+
+$('#btnConfig').addEventListener('click', async () => {
+  abrirModal('#modalConfig');
+  try {
+    const cfg = await llamar('obtenerConfiguracion');
+    S.config = cfg;
+    $('#cfgProveedor').value = cfg.proveedor;
+    $('#cfgModelo').value = cfg.modelo;
+    $('#cfgEstadoKey').textContent = cfg.tieneApiKey
+      ? 'Clave configurada (' + cfg.apiKeyMascara + '). Déjalo vacío para conservarla.'
+      : 'Sin configurar.';
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+});
+
+$('#cfgProveedor').addEventListener('change', e => {
+  const sugeridos = { gemini: 'gemini-2.0-flash', openai: 'gpt-4o', anthropic: 'claude-sonnet-4-5' };
+  $('#cfgModelo').value = sugeridos[e.target.value] || '';
+});
+
+$('#btnGuardarConfig').addEventListener('click', async () => {
+  try {
+    const cfg = await llamar('guardarConfiguracion', {
+      proveedor: $('#cfgProveedor').value,
+      modelo: $('#cfgModelo').value.trim(),
+      apiKey: $('#cfgApiKey').value.trim()
+    });
+    S.config = cfg;
+    $('#cfgApiKey').value = '';
+    $('#cfgEstadoKey').textContent = cfg.tieneApiKey
+      ? 'Clave configurada (' + cfg.apiKeyMascara + ').' : 'Sin configurar.';
+    toast('Configuración guardada.');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+});
+
+$('#btnProbarIA').addEventListener('click', async () => {
+  cargando(true, 'Probando la conexión…');
+  try {
+    const r = await pedir('probarConexionIA');
+    toast('Respuesta del modelo: ' + r.respuesta);
+  } catch (err) {
+    toast(err.message, 'error', 9000);
+  } finally {
+    cargando(false);
+  }
+});
+
+$('#btnDrive').addEventListener('click', async () => {
+  try {
+    const c = await pedir('obtenerCarpetaDrive');
+    window.open(c.url, '_blank', 'noopener');
+  } catch (err) {
+    toast(err.message, 'error');
+  }
+});
+
+/* ─────────────────────────────────────────────────────── Arranque ── */
+
+(async function iniciar() {
+  actualizarChips();
+  try {
+    const cfg = await llamar('obtenerConfiguracion');
+    S.config = cfg;
+    if (cfg.perfil) {
+      S.plantilla.meta = Object.assign({}, cfg.perfil);
+      volcarEstiloEnControles();
+    }
+    if (!cfg.tieneApiKey) {
+      toast('Configura tu API key para empezar (botón ⚙️ Configuración).', 'alerta', 9000);
+    }
+  } catch (err) {
+    toast('No se pudo leer la configuración: ' + err.message, 'error');
+  }
+})();
+</script>
+
+</body>
+</html>

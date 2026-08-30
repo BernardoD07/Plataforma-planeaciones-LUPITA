@@ -1,0 +1,140 @@
+<script>
+/* Simulador de google.script.run para probar la interfaz fuera de Apps Script. */
+(function () {
+  const FASES = [
+    ['Planeación', ['Identificación', 'Recuperación', 'Planificación']],
+    ['Acción', ['Acercamiento', 'Comprensión y producción', 'Reconocimiento', 'Concreción']],
+    ['Intervención', ['Integración', 'Difusión', 'Consideraciones', 'Avances']]
+  ];
+  let n = 0;
+  const uid = () => 'act_' + (++n);
+
+  function propuesta(insumos) {
+    const momentos = [];
+    FASES.forEach(([fase, moms]) => moms.forEach(momento => {
+      const acts = [];
+      for (let i = 0; i < (insumos.actividadesPorMomento || 2); i++) {
+        acts.push({
+          id: uid(), fase, momento,
+          titulo: 'Recorrer el barrio para ' + momento.toLowerCase() + ' (' + (i + 1) + ')',
+          descripcion: 'El grupo sale en equipos, registra evidencias del problema de ' +
+            insumos.tema + ' y elabora un mapa comunitario con lo observado.',
+          consignaAlumno: 'Anoten todo lo que vean relacionado con el problema.',
+          organizacion: ['equipos', 'grupal', 'binas'][i % 3],
+          recursos: ['libreta', 'lápiz', 'cámara del celular'],
+          evidencia: 'Mapa comunitario con anotaciones',
+          participacionComunitaria: i % 2 ? 'ninguna' : 'Vecinos entrevistados',
+          duracionSugerida: 30 + i * 10,
+          duracionAsignada: 30 + i * 10,
+          seleccionada: true
+        });
+      }
+      momentos.push({ fase, momento, proposito: 'Propósito de ' + momento + ' en este proyecto.', actividades: acts });
+    }));
+
+    return {
+      id: 'proy1', creado: new Date().toISOString(), insumos,
+      tituloProyecto: 'Cuidamos el agua de nuestro barrio',
+      problematica: 'El agua se desperdicia en las tomas públicas de la colonia.',
+      productoFinal: 'Campaña vecinal y estación de captación de lluvia.',
+      explicacion: {
+        resumen: 'El ciclo del agua en contextos urbanos y las pérdidas por fugas domésticas.',
+        relevanciaComunitaria: 'La colonia recibe agua por tandeo dos veces por semana.',
+        conceptosClave: [{ titulo: 'Tandeo', texto: 'Distribución intermitente del agua potable.' },
+                         { titulo: 'Captación pluvial', texto: 'Recolección de agua de lluvia para reúso.' }],
+        erroresFrecuentes: ['Confundir agua potable con agua tratada.']
+      },
+      camposFormativos: ['Saberes y Pensamiento Científico', 'Ética, Naturaleza y Sociedades'],
+      ejesArticuladores: ['Vida saludable', 'Pensamiento crítico'],
+      contenidos: ['Cuidado del entorno y recursos naturales'],
+      pda: ['Explica el uso responsable del agua en su comunidad.'],
+      momentos,
+      evaluacion: {
+        enfoque: 'Evaluación formativa con evidencias de proceso.',
+        instrumentos: [{ nombre: 'Rúbrica', momentoDeUso: 'Cierre', descripcion: 'Valora el producto final.' }],
+        criterios: ['Participa en el trabajo por equipos', 'Registra datos con precisión'],
+        indicadoresLogro: ['Explica dos causas del desperdicio de agua.']
+      },
+      recursosConsolidados: ['Libreta', 'Botellas PET', 'Cinta métrica'],
+      adecuaciones: [{ situacion: 'Lectura incipiente', ajuste: 'Registro con dibujos y audio.' }],
+      vinculacionFamilias: 'Se invita a las familias a la feria comunitaria de cierre.'
+    };
+  }
+
+  function distribuir(proyecto, opciones) {
+    const acts = [];
+    proyecto.momentos.forEach(m => m.actividades.forEach(a => { if (a.seleccionada !== false) acts.push(a); }));
+    const total = opciones.sesiones * opciones.minutosPorSesion;
+    const suma = acts.reduce((s, a) => s + a.duracionSugerida, 0) || 1;
+    acts.forEach(a => { a.duracionAsignada = Math.max(5, Math.round(total * a.duracionSugerida / suma / 5) * 5); });
+
+    const sesiones = [];
+    let actual = { numero: 1, bloques: [], minutosUsados: 0, minutosLibres: 0 };
+    let usado = 0;
+    acts.forEach(a => {
+      let resta = a.duracionAsignada;
+      while (resta > 0) {
+        const hueco = opciones.minutosPorSesion - usado;
+        if (hueco < Math.min(5, resta)) {
+          sesiones.push(actual);
+          actual = { numero: sesiones.length + 1, bloques: [], minutosUsados: 0, minutosLibres: 0 };
+          usado = 0; continue;
+        }
+        const trozo = Math.min(hueco, resta);
+        actual.bloques.push({ actividadId: a.id, fase: a.fase, momento: a.momento, titulo: a.titulo, minutos: trozo });
+        usado += trozo; resta -= trozo; actual.minutosUsados = usado;
+      }
+    });
+    if (actual.bloques.length) sesiones.push(actual);
+
+    const porFase = {};
+    acts.forEach(a => { porFase[a.fase] = (porFase[a.fase] || 0) + a.duracionAsignada; });
+    const asignado = acts.reduce((s, a) => s + a.duracionAsignada, 0);
+
+    return {
+      totalDisponible: total, totalAsignado: asignado, diferencia: total - asignado,
+      sesionesPlanificadas: opciones.sesiones, minutosPorSesion: opciones.minutosPorSesion,
+      sesionesUsadas: sesiones.length, desborde: Math.max(sesiones.length - opciones.sesiones, 0),
+      actividades: acts.map(a => ({ id: a.id, fase: a.fase, momento: a.momento, titulo: a.titulo,
+        duracionSugerida: a.duracionSugerida, duracionAsignada: a.duracionAsignada })),
+      sesiones,
+      porFase: Object.keys(porFase).map(k => ({ nombre: k, minutos: porFase[k],
+        actividades: 0, porcentaje: Math.round(porFase[k] / asignado * 100) })),
+      porMomento: []
+    };
+  }
+
+  const API = {
+    obtenerConfiguracion: () => ({ proveedor: 'gemini', modelo: 'gemini-2.0-flash', tieneApiKey: true,
+      apiKeyMascara: 'AIza••••••••1234', perfil: { docente: 'Prof. Ejemplo', escuela: 'Esc. Prim. Benito Juárez' },
+      usuario: 'demo@escuela.mx', version: '1.0.0-demo' }),
+    guardarConfiguracion: cfg => Object.assign(API.obtenerConfiguracion(), cfg, { tieneApiKey: true }),
+    guardarPerfilDocente: () => ({ ok: true }),
+    generarInsumos: i => ({ ok: true, data: propuesta(i) }),
+    regenerarMomento: () => ({ ok: true, data: [] }),
+    distribuirTiempos: (p, o) => ({ ok: true, data: distribuir(p, o) }),
+    guardarProyecto: () => ({ ok: true, data: { archivoId: 'f1', nombre: 'demo.json', url: '#', actualizado: '' } }),
+    listarProyectos: () => ({ ok: true, data: [] }),
+    listarPlantillas: () => ({ ok: true, data: [] }),
+    obtenerCarpetaDrive: () => ({ ok: true, data: { id: 'c1', nombre: 'Demo', url: '#' } }),
+    generarDocumento: () => ({ ok: true, data: { docId: 'd1', url: '#', nombre: 'Planeación demo', avisoFusion: '' } }),
+    exportarPDF: () => ({ ok: true, data: { archivoId: 'p1', url: '#', nombre: 'demo.pdf' } }),
+    probarConexionIA: () => ({ ok: true, data: { respuesta: 'CONEXION_OK' } })
+  };
+
+  const run = {
+    withSuccessHandler(fn) { const r = Object.create(run); r._ok = fn; r._err = this._err; return r; },
+    withFailureHandler(fn) { const r = Object.create(run); r._err = fn; r._ok = this._ok; return r; }
+  };
+  Object.keys(API).forEach(nombre => {
+    run[nombre] = function () {
+      const args = arguments, ok = this._ok, err = this._err;
+      setTimeout(() => {
+        try { ok(API[nombre].apply(null, args)); }
+        catch (e) { if (err) err(e); else console.error(e); }
+      }, 120);
+    };
+  });
+  window.google = { script: { run } };
+})();
+</script>

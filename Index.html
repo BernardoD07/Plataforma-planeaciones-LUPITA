@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <base target="_top">
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title><?= appName ?></title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <?!= include('Styles'); ?>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════ Barra superior -->
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="brand-mark" aria-hidden="true"></span>
+    <div>
+      <h1 class="brand-name">Planeaciones<span>Comunitarias</span></h1>
+      <p class="brand-tag">Proyectos comunitarios asistidos por IA</p>
+    </div>
+  </div>
+
+  <nav class="topbar__actions">
+    <button class="btn btn--ghost" id="btnBiblioteca" type="button">
+      <span class="ico">📚</span> Mis planeaciones
+    </button>
+    <button class="btn btn--ghost" id="btnDrive" type="button">
+      <span class="ico">🗂️</span> Carpeta en Drive
+    </button>
+    <button class="btn btn--ghost" id="btnConfig" type="button">
+      <span class="ico">⚙️</span> Configuración
+    </button>
+    <button class="btn btn--primary" id="btnGuardar" type="button">
+      <span class="ico">💾</span> Guardar
+    </button>
+  </nav>
+</header>
+
+<!-- ══════════════════════════════════════════════════════════════ Pasos -->
+<div class="stepper" id="stepper">
+  <button class="step is-active" data-paso="1" type="button">
+    <span class="step__num">1</span>
+    <span class="step__txt"><b>Insumos</b><small>Tema, grupo y tiempo</small></span>
+  </button>
+  <button class="step" data-paso="2" type="button">
+    <span class="step__num">2</span>
+    <span class="step__txt"><b>Actividades</b><small>Selección y tiempos</small></span>
+  </button>
+  <button class="step" data-paso="3" type="button">
+    <span class="step__num">3</span>
+    <span class="step__txt"><b>Plantilla</b><small>Maquetado drag &amp; drop</small></span>
+  </button>
+  <button class="step" data-paso="4" type="button">
+    <span class="step__num">4</span>
+    <span class="step__txt"><b>Documento</b><small>Generar en Google Docs</small></span>
+  </button>
+</div>
+
+<main class="lienzo">
+
+  <!-- ════════════════════════════════════ PASO 1 · Insumos y generación -->
+  <section class="vista is-active" id="vista-1">
+    <div class="hero">
+      <div class="hero__texto">
+        <span class="pill">Nueva Escuela Mexicana · 3 fases, 11 momentos</span>
+        <h2>Describe tu contexto y la IA construye el proyecto</h2>
+        <p>Las actividades se generan dentro de la metodología de <b>Proyectos Comunitarios</b>,
+           ajustadas al nivel, a los recursos reales y a las características de tu grupo.</p>
+      </div>
+      <div class="hero__blob" aria-hidden="true"></div>
+    </div>
+
+    <form class="tarjeta form-grid" id="formInsumos" autocomplete="off">
+      <div class="campo campo--ancho">
+        <label for="tema">Tema o problemática detonadora <span class="req">*</span></label>
+        <input type="text" id="tema" name="tema" required
+               placeholder="Ej. El desperdicio de agua en el barrio y las huertas de traspatio">
+        <small>Escríbelo como una situación real de la comunidad, no como un título de libro.</small>
+      </div>
+
+      <div class="campo">
+        <label for="nivel">Nivel educativo <span class="req">*</span></label>
+        <select id="nivel" name="nivel" required>
+          <option value="">Selecciona…</option>
+          <option>Preescolar</option>
+          <option>Primaria</option>
+          <option>Secundaria</option>
+          <option>Telesecundaria</option>
+          <option>Media superior</option>
+          <option>Educación especial</option>
+          <option>Educación para adultos</option>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="grado">Grado / fase</label>
+        <input type="text" id="grado" name="grado" placeholder="Ej. 4.º grado (Fase 4)">
+      </div>
+
+      <div class="campo">
+        <label for="campoFormativo">Campo formativo prioritario</label>
+        <select id="campoFormativo" name="campoFormativo">
+          <option value="">Que lo decida la IA</option>
+          <option>Lenguajes</option>
+          <option>Saberes y Pensamiento Científico</option>
+          <option>Ética, Naturaleza y Sociedades</option>
+          <option>De lo Humano y lo Comunitario</option>
+          <option>Interdisciplinario (varios campos)</option>
+        </select>
+      </div>
+
+      <div class="campo campo--ancho">
+        <label for="caracteristicasGrupo">Características del grupo y del salón</label>
+        <textarea id="caracteristicasGrupo" name="caracteristicasGrupo" rows="3"
+          placeholder="Ej. 28 alumnos, 3 con lectura incipiente, 1 con TDAH, aula pequeña con bancas fijas, grupo muy participativo."></textarea>
+      </div>
+
+      <div class="campo campo--ancho">
+        <label for="recursos">Recursos realmente disponibles</label>
+        <textarea id="recursos" name="recursos" rows="3"
+          placeholder="Ej. hojas de reúso, colores, un proyector compartido, celular del docente, patio, biblioteca de aula. Sin internet en el salón."></textarea>
+      </div>
+
+      <div class="campo campo--ancho">
+        <label for="contextoComunitario">Contexto comunitario</label>
+        <textarea id="contextoComunitario" name="contextoComunitario" rows="2"
+          placeholder="Ej. Colonia semiurbana, muchas familias dedicadas al comercio, hay un mercado y un arroyo contaminado a dos calles."></textarea>
+      </div>
+
+      <div class="campo">
+        <label for="sesiones">Número de sesiones <span class="req">*</span></label>
+        <input type="number" id="sesiones" name="sesiones" min="1" max="120" value="10" required>
+      </div>
+
+      <div class="campo">
+        <label for="minutosPorSesion">Minutos por sesión <span class="req">*</span></label>
+        <input type="number" id="minutosPorSesion" name="minutosPorSesion" min="10" max="300" step="5" value="50" required>
+      </div>
+
+      <div class="campo">
+        <label for="semanas">Semanas</label>
+        <input type="number" id="semanas" name="semanas" min="1" max="40" value="3">
+      </div>
+
+      <div class="campo">
+        <label for="actividadesPorMomento">Actividades por momento</label>
+        <select id="actividadesPorMomento" name="actividadesPorMomento">
+          <option value="2">2 (recomendado)</option>
+          <option value="1">1</option>
+          <option value="3">3</option>
+        </select>
+        <small>Se generan para cada uno de los 11 momentos.</small>
+      </div>
+
+      <div class="campo campo--ancho resumen-tiempo">
+        <span class="chip chip--tiempo" id="chipTiempoTotal">500 minutos totales</span>
+        <span class="chip" id="chipActividades">≈ 22 actividades propuestas</span>
+      </div>
+
+      <div class="acciones acciones--fin campo--ancho">
+        <button type="button" class="btn btn--ghost" id="btnLimpiar">Limpiar</button>
+        <button type="submit" class="btn btn--primary btn--grande" id="btnGenerar">
+          <span class="ico">✨</span> Generar propuesta con IA
+        </button>
+      </div>
+    </form>
+  </section>
+
+  <!-- ══════════════════════════ PASO 2 · Selección y reparto de tiempos -->
+  <section class="vista" id="vista-2">
+    <div class="encabezado-vista">
+      <div>
+        <h2 id="tituloProyecto">Propuesta generada</h2>
+        <p class="sub" id="problematicaProyecto"></p>
+      </div>
+      <div class="encabezado-vista__acciones">
+        <button class="btn btn--ghost" id="btnVerExplicacion" type="button">📖 Ver explicación del tema</button>
+        <button class="btn btn--ghost" id="btnVolver1" type="button">← Cambiar insumos</button>
+      </div>
+    </div>
+
+    <div class="panel-tiempos tarjeta">
+      <div class="panel-tiempos__cifras">
+        <div class="cifra"><b id="cifraSeleccionadas">0</b><small>actividades elegidas</small></div>
+        <div class="cifra"><b id="cifraDisponible">0</b><small>minutos disponibles</small></div>
+        <div class="cifra"><b id="cifraAsignado">0</b><small>minutos repartidos</small></div>
+        <div class="cifra"><b id="cifraSesiones">0</b><small>sesiones utilizadas</small></div>
+      </div>
+      <div class="panel-tiempos__controles">
+        <label class="campo campo--inline">
+          <span>Reparto</span>
+          <select id="modoReparto">
+            <option value="proporcional">Proporcional a lo sugerido</option>
+            <option value="equitativo">Equitativo</option>
+            <option value="manual">Manual (respetar mis minutos)</option>
+          </select>
+        </label>
+        <button class="btn btn--secundario" id="btnRecalcular" type="button">🕒 Recalcular tiempos</button>
+      </div>
+      <div class="barra-fases" id="barraFases"></div>
+    </div>
+
+    <div class="filtros" id="filtrosFase"></div>
+
+    <div id="listaMomentos" class="lista-momentos"></div>
+
+    <div class="acciones acciones--fin">
+      <button class="btn btn--primary btn--grande" id="btnIrPlantilla" type="button">
+        Diseñar plantilla →
+      </button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════ PASO 3 · Editor de plantilla drag & drop -->
+  <section class="vista" id="vista-3">
+    <div class="encabezado-vista">
+      <div>
+        <h2>Diseñador de plantilla</h2>
+        <p class="sub">Arrastra los bloques de la izquierda a las celdas de la tabla. También puedes
+           escribir texto libre y usar marcadores como <code>{{explicacion_resumen}}</code>.</p>
+      </div>
+      <div class="encabezado-vista__acciones">
+        <button class="btn btn--ghost" id="btnPlantillasGuardadas" type="button">📐 Plantillas</button>
+        <button class="btn btn--ghost" id="btnGuardarPlantilla" type="button">💾 Guardar maquetado</button>
+        <button class="btn btn--ghost" id="btnVolver2" type="button">← Actividades</button>
+      </div>
+    </div>
+
+    <div class="editor">
+
+      <!-- ─────────────────────────────── Paleta de bloques arrastrables -->
+      <aside class="paleta" id="paleta">
+        <div class="paleta__buscador">
+          <input type="search" id="buscarBloque" placeholder="Buscar bloque…" aria-label="Buscar bloque">
+        </div>
+        <div class="paleta__lista" id="paletaLista"></div>
+        <p class="paleta__ayuda">
+          Arrastra un bloque a cualquier celda. Doble clic en un bloque para insertarlo
+          en la celda seleccionada.
+        </p>
+      </aside>
+
+      <!-- ───────────────────────────────────────── Rejilla de la tabla -->
+      <div class="tablero">
+        <div class="tablero__barra">
+          <div class="grupo-btn">
+            <button class="btn btn--mini" data-accion="fila-add" type="button">＋ Fila</button>
+            <button class="btn btn--mini" data-accion="fila-del" type="button">－ Fila</button>
+            <button class="btn btn--mini" data-accion="col-add" type="button">＋ Columna</button>
+            <button class="btn btn--mini" data-accion="col-del" type="button">－ Columna</button>
+          </div>
+          <div class="grupo-btn">
+            <button class="btn btn--mini" data-accion="fusionar-h" type="button">⇔ Combinar →</button>
+            <button class="btn btn--mini" data-accion="fusionar-v" type="button">⇕ Combinar ↓</button>
+            <button class="btn btn--mini" data-accion="separar" type="button">⤫ Separar</button>
+          </div>
+          <div class="grupo-btn">
+            <button class="btn btn--mini" data-accion="encabezado" type="button">🏷️ Encabezado</button>
+            <button class="btn btn--mini" data-accion="limpiar-celda" type="button">🧹 Vaciar celda</button>
+          </div>
+          <div class="grupo-btn grupo-btn--fin">
+            <select id="preajuste" class="select-mini" aria-label="Diseño base">
+              <option value="">Diseños base…</option>
+              <option value="clasica">Tabla clásica por momentos</option>
+              <option value="sesiones">Por sesiones</option>
+              <option value="fases">Por fases (3 columnas)</option>
+              <option value="compacta">Ficha compacta</option>
+              <option value="vacia">Tabla vacía</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="tablero__scroll">
+          <table class="rejilla" id="rejilla"></table>
+        </div>
+      </div>
+
+      <!-- ─────────────────────────────────── Propiedades e institución -->
+      <aside class="props">
+        <div class="props__seccion">
+          <h3>Celda seleccionada</h3>
+          <div id="propsCelda" class="props__cuerpo">
+            <p class="vacio">Selecciona una celda de la tabla.</p>
+          </div>
+        </div>
+
+        <div class="props__seccion">
+          <h3>Estilo del documento</h3>
+          <div class="props__cuerpo">
+            <label class="campo campo--mini">
+              <span>Color principal</span>
+              <input type="color" id="estiloColorPrimario" value="#E5397F">
+            </label>
+            <label class="campo campo--mini">
+              <span>Fondo de encabezados</span>
+              <input type="color" id="estiloFondoEncabezado" value="#FDE7F0">
+            </label>
+            <label class="campo campo--mini">
+              <span>Texto de encabezados</span>
+              <input type="color" id="estiloColorEncabezado" value="#8A1F4C">
+            </label>
+            <label class="campo campo--mini">
+              <span>Color del borde</span>
+              <input type="color" id="estiloColorBorde" value="#C8CDD8">
+            </label>
+            <label class="campo campo--mini">
+              <span>Grosor del borde</span>
+              <input type="number" id="estiloAnchoBorde" min="0" max="6" step="0.5" value="1">
+            </label>
+            <label class="campo campo--mini">
+              <span>Tipografía</span>
+              <select id="estiloFuente">
+                <option>Arial</option><option>Verdana</option><option>Georgia</option>
+                <option>Times New Roman</option><option>Calibri</option><option>Roboto</option>
+              </select>
+            </label>
+            <label class="campo campo--mini">
+              <span>Tamaño base</span>
+              <input type="number" id="estiloTamano" min="6" max="16" value="9">
+            </label>
+            <label class="campo campo--mini">
+              <span>Orientación</span>
+              <select id="estiloOrientacion">
+                <option value="vertical">Vertical (carta)</option>
+                <option value="horizontal">Horizontal (carta)</option>
+              </select>
+            </label>
+          </div>
+        </div>
+
+        <div class="props__seccion">
+          <h3>Datos institucionales</h3>
+          <div class="props__cuerpo" id="propsMeta">
+            <label class="campo campo--mini"><span>Docente</span><input type="text" data-meta="docente"></label>
+            <label class="campo campo--mini"><span>Escuela</span><input type="text" data-meta="escuela"></label>
+            <label class="campo campo--mini"><span>CCT</span><input type="text" data-meta="cct"></label>
+            <label class="campo campo--mini"><span>Zona / sector</span><input type="text" data-meta="zona"></label>
+            <label class="campo campo--mini"><span>Ciclo escolar</span><input type="text" data-meta="ciclo" placeholder="2025-2026"></label>
+            <label class="campo campo--mini"><span>Grado y grupo</span><input type="text" data-meta="gradoGrupo"></label>
+            <label class="campo campo--mini"><span>Asignatura / campo</span><input type="text" data-meta="asignatura"></label>
+            <label class="campo campo--mini"><span>Periodo</span><input type="text" data-meta="periodo" placeholder="Del 6 al 24 de octubre"></label>
+            <label class="campo campo--mini"><span>Director(a)</span><input type="text" data-meta="director"></label>
+            <button class="btn btn--mini" id="btnGuardarPerfil" type="button">Recordar mis datos</button>
+          </div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="acciones acciones--fin">
+      <button class="btn btn--primary btn--grande" id="btnIrDocumento" type="button">
+        Vista previa y documento →
+      </button>
+    </div>
+  </section>
+
+  <!-- ════════════════════════════════ PASO 4 · Vista previa y generación -->
+  <section class="vista" id="vista-4">
+    <div class="encabezado-vista">
+      <div>
+        <h2>Vista previa del documento</h2>
+        <p class="sub">Así se escribirá en Google Docs. Si algo no cuadra, vuelve al diseñador.</p>
+      </div>
+      <div class="encabezado-vista__acciones">
+        <button class="btn btn--ghost" id="btnVolver3" type="button">← Diseñador</button>
+      </div>
+    </div>
+
+    <div class="tarjeta bloque-final">
+      <label class="campo">
+        <span>Nombre del documento</span>
+        <input type="text" id="nombreDocumento" placeholder="Planeación · Proyecto comunitario">
+      </label>
+      <div class="opciones-final">
+        <label class="check"><input type="checkbox" id="optSobrescribir"> Actualizar el documento ya generado en vez de crear otro</label>
+        <label class="check"><input type="checkbox" id="optPDF"> Exportar también en PDF</label>
+        <label class="check"><input type="checkbox" id="optAnexos" checked> Añadir anexos (evaluación, recursos y agenda de sesiones)</label>
+      </div>
+      <div class="acciones acciones--fin">
+        <button class="btn btn--primary btn--grande" id="btnGenerarDoc" type="button">
+          <span class="ico">📄</span> Generar en Google Docs
+        </button>
+      </div>
+      <div id="resultadoDoc" class="resultado" hidden></div>
+    </div>
+
+    <div class="previa" id="previa"></div>
+  </section>
+</main>
+
+<!-- ══════════════════════════════════════════════════════════ Modales -->
+
+<div class="modal" id="modalConfig" hidden>
+  <div class="modal__caja">
+    <header class="modal__head">
+      <h3>Configuración de la IA</h3>
+      <button class="btn btn--icono" data-cerrar type="button">✕</button>
+    </header>
+    <div class="modal__cuerpo">
+      <label class="campo">
+        <span>Proveedor</span>
+        <select id="cfgProveedor">
+          <option value="gemini">Google Gemini</option>
+          <option value="openai">OpenAI</option>
+          <option value="anthropic">Anthropic (Claude)</option>
+        </select>
+      </label>
+      <label class="campo">
+        <span>Modelo</span>
+        <input type="text" id="cfgModelo" placeholder="gemini-2.0-flash">
+      </label>
+      <label class="campo">
+        <span>API key</span>
+        <input type="password" id="cfgApiKey" placeholder="Pega tu clave aquí">
+        <small id="cfgEstadoKey">Sin configurar.</small>
+      </label>
+      <p class="nota">
+        La clave se guarda en las <b>propiedades del script</b>, no en el navegador ni en el documento.
+        Escribe <code>BORRAR</code> y guarda para eliminarla.
+      </p>
+    </div>
+    <footer class="modal__pie">
+      <button class="btn btn--ghost" id="btnProbarIA" type="button">Probar conexión</button>
+      <button class="btn btn--primary" id="btnGuardarConfig" type="button">Guardar</button>
+    </footer>
+  </div>
+</div>
+
+<div class="modal" id="modalBiblioteca" hidden>
+  <div class="modal__caja modal__caja--ancha">
+    <header class="modal__head">
+      <h3>Mis planeaciones</h3>
+      <button class="btn btn--icono" data-cerrar type="button">✕</button>
+    </header>
+    <div class="modal__cuerpo" id="listaBiblioteca">
+      <p class="vacio">Cargando…</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal" id="modalExplicacion" hidden>
+  <div class="modal__caja modal__caja--ancha">
+    <header class="modal__head">
+      <h3>Explicación del tema</h3>
+      <button class="btn btn--icono" data-cerrar type="button">✕</button>
+    </header>
+    <div class="modal__cuerpo" id="cuerpoExplicacion"></div>
+  </div>
+</div>
+
+<div class="modal" id="modalPlantillas" hidden>
+  <div class="modal__caja">
+    <header class="modal__head">
+      <h3>Maquetados guardados</h3>
+      <button class="btn btn--icono" data-cerrar type="button">✕</button>
+    </header>
+    <div class="modal__cuerpo" id="listaPlantillas"></div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════ Cargador y notificaciones -->
+<div class="cargando" id="cargando" hidden>
+  <div class="cargando__caja">
+    <div class="spinner" aria-hidden="true"></div>
+    <p id="cargandoTexto">Trabajando…</p>
+    <small id="cargandoNota">Las respuestas de la IA pueden tardar hasta un minuto.</small>
+  </div>
+</div>
+
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<?!= include('JavaScript'); ?>
+</body>
+</html>
