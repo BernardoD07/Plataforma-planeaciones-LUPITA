@@ -1,16 +1,22 @@
 /**
  * ============================================================================
  *  Almacen.gs · Persistencia en Google Drive.
- *  Estructura creada en el Drive de cada docente:
  *
- *    Planeaciones Comunitarias/
- *      ├── 01 Proyectos (JSON)/      <- estado completo, reutilizable
+ *  Cada PLANTILLA (el membrete de una unidad escolar) es una carpeta con sus
+ *  propias planeaciones dentro, para que el historial quede agrupado:
+ *
+ *    Planeaciones Secundaria/
+ *      ├── 01 Planeaciones (JSON)/
+ *      │     ├── Química · Sec. 128 [ab12cd]/   <- planeaciones de esa plantilla
+ *      │     └── Plantilla prueba [ef34gh]/
  *      ├── 02 Documentos generados/  <- Google Docs de salida
- *      └── 03 Plantillas/            <- maquetados guardados del editor
+ *      ├── 03 Plantillas/            <- el membrete y las firmas (JSON)
+ *      └── 04 Imágenes/              <- logotipos de las plantillas
  * ============================================================================
  */
 
 var SUBCARPETA_PLANTILLAS = '03 Plantillas';
+var SUBCARPETA_IMAGENES   = '04 Imágenes';
 
 /* ------------------------------------------------------------- Carpetas */
 
@@ -40,6 +46,7 @@ function buscarOCrearCarpeta_(padre, nombre) {
 function carpetaProyectos_()  { return buscarOCrearCarpeta_(carpetaRaiz_(), APP.subcarpetaProyectos); }
 function carpetaDocumentos_() { return buscarOCrearCarpeta_(carpetaRaiz_(), APP.subcarpetaDocumentos); }
 function carpetaPlantillas_() { return buscarOCrearCarpeta_(carpetaRaiz_(), SUBCARPETA_PLANTILLAS); }
+function carpetaImagenes_()   { return buscarOCrearCarpeta_(carpetaRaiz_(), SUBCARPETA_IMAGENES); }
 
 /** Devuelve el enlace a la carpeta raíz para mostrarlo en la interfaz. */
 function obtenerCarpetaDrive() {
@@ -49,192 +56,397 @@ function obtenerCarpetaDrive() {
   });
 }
 
-/* ------------------------------------------------------------ Proyectos */
+/* ---------------------------------------------------------- Planeaciones */
 
 /**
- * Guarda (o actualiza) el estado completo de una planeación.
- * @param {Object} estado {id, proyecto, distribucion, plantilla, meta, archivoId}
+ * Carpeta donde viven las planeaciones de una plantilla. Si la plantilla aún no
+ * tiene carpeta, se crea; si le cambiaron el nombre, se renombra.
+ *
+ * @param {{id:string, nombre:string, carpetaId:string}} plantilla
+ * @return {Folder}
  */
-function guardarProyecto(estado) {
+function carpetaDePlantilla_(plantilla) {
+  var raiz = carpetaProyectos_();
+  if (!plantilla || !plantilla.id) return raiz;
+
+  var nombre = (limpiarTexto_(plantilla.nombre) || 'Plantilla')
+    .replace(/[\\/:*?"<>|]/g, '-').substring(0, 80) + ' [' + plantilla.id + ']';
+
+  if (plantilla.carpetaId) {
+    try {
+      var existente = DriveApp.getFolderById(plantilla.carpetaId);
+      if (!existente.isTrashed()) {
+        if (existente.getName() !== nombre) existente.setName(nombre);
+        return existente;
+      }
+    } catch (err) {
+      // La carpeta ya no existe: se recrea abajo.
+    }
+  }
+
+  var carpeta = buscarOCrearCarpeta_(raiz, nombre);
+  plantilla.carpetaId = carpeta.getId();
+  return carpeta;
+}
+
+/**
+ * Guarda (o actualiza) el estado completo de una planeación, dentro de la
+ * carpeta de su plantilla.
+ *
+ * @param {Object} estado {id, archivoId, docId, plantilla, datos, contenido,
+ *                         proyecto, fases, observaciones, usarIA, bloques}
+ */
+function guardarPlaneacion(estado) {
   return envolver_(function () {
-    if (!estado || !estado.proyecto) throw new Error('No hay ningún proyecto que guardar.');
+    if (!estado) throw new Error('No hay ninguna planeación que guardar.');
 
-    estado.id = estado.id || estado.proyecto.id || idCorto_();
-    estado.actualizado = new Date().toISOString();
-    estado.creado = estado.creado || estado.actualizado;
-    estado.appVersion = APP.version;
+    estado.id = estado.id || idCorto_();
+    estado.actualizado = fechaLegible_(new Date());
+    estado.version = APP.version;
 
-    var nombre = nombreArchivo_(estado) + '.json';
-    var contenido = JSON.stringify(estado, null, 2);
-    var carpeta = carpetaProyectos_();
-    var archivo = null;
+    var carpeta = carpetaDePlantilla_(estado.plantilla);
+    var nombre = nombreArchivo_(estado);
+    var json = JSON.stringify(estado);
 
     if (estado.archivoId) {
       try {
-        archivo = DriveApp.getFileById(estado.archivoId);
-        if (archivo.isTrashed()) archivo = null;
+        var existente = DriveApp.getFileById(estado.archivoId);
+        existente.setContent(json);
+        existente.setName(nombre);
+        // Si cambió de plantilla, la planeación se muda de carpeta.
+        if (existente.getParents().next().getId() !== carpeta.getId()) {
+          moverA_(existente, carpeta);
+        }
+        return { archivoId: existente.getId(), nombre: nombre, url: existente.getUrl(),
+                 carpetaId: carpeta.getId() };
       } catch (err) {
-        archivo = null;
+        // El archivo ya no existe: se crea uno nuevo abajo.
       }
     }
 
-    if (archivo) {
-      archivo.setContent(contenido);
-      if (archivo.getName() !== nombre) archivo.setName(nombre);
-    } else {
-      archivo = carpeta.createFile(nombre, contenido, MimeType.PLAIN_TEXT);
-    }
-
-    return {
-      archivoId: archivo.getId(),
-      nombre: archivo.getName(),
-      url: archivo.getUrl(),
-      actualizado: estado.actualizado
-    };
+    var nuevo = carpeta.createFile(nombre, json, MimeType.PLAIN_TEXT);
+    return { archivoId: nuevo.getId(), nombre: nombre, url: nuevo.getUrl(),
+             carpetaId: carpeta.getId() };
   });
 }
 
-function listarProyectos() {
+/**
+ * Planeaciones de una plantilla. Sin `carpetaId` devuelve las que estén
+ * sueltas en la raíz (planeaciones antiguas, sin plantilla asociada).
+ */
+function listarPlaneaciones(carpetaId) {
   return envolver_(function () {
-    var it = carpetaProyectos_().getFilesByType(MimeType.PLAIN_TEXT);
+    var carpeta;
+    try {
+      carpeta = carpetaId ? DriveApp.getFolderById(carpetaId) : carpetaProyectos_();
+    } catch (err) {
+      return [];   // La carpeta fue borrada: la plantilla aún no tiene historial.
+    }
+
+    var archivos = carpeta.getFiles();
     var lista = [];
 
-    while (it.hasNext()) {
-      var f = it.next();
-      if (f.getName().slice(-5).toLowerCase() !== '.json') continue;
+    while (archivos.hasNext()) {
+      var a = archivos.next();
+      if (a.isTrashed()) continue;
 
-      var resumen = {
-        archivoId: f.getId(),
-        nombre: f.getName().replace(/\.json$/i, ''),
-        actualizado: f.getLastUpdated().toISOString(),
-        url: f.getUrl(),
-        titulo: '',
-        nivel: '',
-        docId: ''
-      };
-
-      // Metadatos ligeros para las tarjetas de la biblioteca.
+      var resumen = { archivoId: a.getId(), nombre: a.getName(), url: a.getUrl(),
+                      actualizado: fechaLegible_(a.getLastUpdated()) };
       try {
-        var datos = JSON.parse(f.getBlob().getDataAsString());
-        resumen.titulo = (datos.proyecto && datos.proyecto.tituloProyecto) || resumen.nombre;
-        resumen.nivel = (datos.proyecto && datos.proyecto.insumos && datos.proyecto.insumos.nivel) || '';
-        resumen.docId = datos.docId || '';
-        resumen.docUrl = datos.docUrl || '';
+        var e = JSON.parse(a.getBlob().getDataAsString());
+        resumen.escuela = (e.datos || {}).escuela || '';
+        resumen.gradoGrupo = (e.datos || {}).gradoGrupo || '';
+        resumen.disciplina = (e.datos || {}).disciplina || '';
+        resumen.periodo = (e.datos || {}).periodo || '';
+        resumen.proyecto = (e.proyecto || {}).nombre || '';
+        resumen.fases = (e.fases || []).length;
+        resumen.docId = e.docId || '';
       } catch (err) {
-        resumen.titulo = resumen.nombre;
+        resumen.error = 'El archivo no es una planeación válida.';
       }
-
       lista.push(resumen);
     }
 
-    lista.sort(function (a, b) { return b.actualizado.localeCompare(a.actualizado); });
+    lista.sort(function (a, b) { return a.actualizado < b.actualizado ? 1 : -1; });
     return lista;
   });
 }
 
-function cargarProyecto(archivoId) {
+/** Cuántas planeaciones tiene una plantilla, para pintarlo en su tarjeta. */
+function contarPlaneaciones_(carpetaId) {
+  if (!carpetaId) return 0;
+  try {
+    var archivos = DriveApp.getFolderById(carpetaId).getFiles();
+    var n = 0;
+    while (archivos.hasNext()) { if (!archivos.next().isTrashed()) n++; }
+    return n;
+  } catch (err) {
+    return 0;
+  }
+}
+
+function cargarPlaneacion(archivoId) {
   return envolver_(function () {
-    var f = DriveApp.getFileById(archivoId);
-    var estado = JSON.parse(f.getBlob().getDataAsString());
-    estado.archivoId = f.getId();
+    var estado = JSON.parse(DriveApp.getFileById(archivoId).getBlob().getDataAsString());
+    estado.archivoId = archivoId;
     return estado;
   });
 }
 
-function eliminarProyecto(archivoId) {
+function eliminarPlaneacion(archivoId) {
   return envolver_(function () {
-    // Se envía a la papelera, nunca se borra de forma definitiva.
     DriveApp.getFileById(archivoId).setTrashed(true);
-    return { archivoId: archivoId, enPapelera: true };
+    return { eliminado: true };
   });
 }
 
-function duplicarProyecto(archivoId) {
+function duplicarPlaneacion(archivoId) {
   return envolver_(function () {
-    var original = DriveApp.getFileById(archivoId);
-    var estado = JSON.parse(original.getBlob().getDataAsString());
-
+    var estado = JSON.parse(DriveApp.getFileById(archivoId).getBlob().getDataAsString());
     estado.id = idCorto_();
     estado.archivoId = null;
-    estado.docId = '';
-    estado.docUrl = '';
-    estado.creado = new Date().toISOString();
-    if (estado.proyecto) {
-      estado.proyecto.tituloProyecto = (estado.proyecto.tituloProyecto || 'Proyecto') + ' (copia)';
-    }
+    estado.docId = null;   // la copia genera su propio documento
+    var proyecto = estado.proyecto || (estado.proyecto = {});
+    proyecto.nombre = (proyecto.nombre || 'Planeación') + ' (copia)';
 
-    var copia = carpetaProyectos_().createFile(
-      nombreArchivo_(estado) + '.json',
-      JSON.stringify(estado, null, 2),
-      MimeType.PLAIN_TEXT
-    );
-    return { archivoId: copia.getId(), nombre: copia.getName(), url: copia.getUrl() };
+    var carpeta = carpetaDePlantilla_(estado.plantilla);
+    var nombre = nombreArchivo_(estado);
+    var nuevo = carpeta.createFile(nombre, JSON.stringify(estado), MimeType.PLAIN_TEXT);
+    estado.archivoId = nuevo.getId();
+    return estado;
   });
 }
 
 function nombreArchivo_(estado) {
-  var titulo = (estado.proyecto && estado.proyecto.tituloProyecto) || 'Planeación';
-  var limpio = String(titulo).replace(/[\\/:*?"<>|]/g, '-').substring(0, 80).trim();
-  return limpio + ' — ' + estado.id;
+  var d = estado.datos || {};
+  var partes = [
+    limpiarTexto_(d.gradoGrupo),
+    limpiarTexto_(d.disciplina),
+    limpiarTexto_((estado.proyecto || {}).nombre) || limpiarTexto_((estado.contenido || {}).temas)
+  ].filter(function (t) { return t; });
+
+  var base = partes.join(' · ').substring(0, 90) || 'Planeación';
+  return base.replace(/[\\/:*?"<>|]/g, '-') + ' [' + estado.id + '].json';
 }
 
-/* ------------------------------------------------------------ Plantillas
- * Solo se guarda el maquetado (rejilla + estilos), sin contenido del proyecto,
- * para poder reutilizar el formato institucional en otras planeaciones.
+/* ------------------------------------------- Plantillas institucionales
+ * Guardan solo el encabezado (logos, textos, ciclo) y el bloque de firmas,
+ * para reutilizarlos entre unidades escolares distintas.
  */
 
-function guardarPlantilla(nombre, plantilla) {
+function guardarPlantilla(plantilla) {
   return envolver_(function () {
-    if (!limpiarTexto_(nombre)) throw new Error('Ponle un nombre a la plantilla.');
+    if (!plantilla || !limpiarTexto_(plantilla.nombre)) {
+      throw new Error('Ponle un nombre a la plantilla antes de guardarla.');
+    }
 
-    var payload = {
-      nombre: limpiarTexto_(nombre),
-      guardado: new Date().toISOString(),
-      appVersion: APP.version,
-      plantilla: plantilla
-    };
+    plantilla.id = plantilla.id || idCorto_();
+    plantilla.actualizado = fechaLegible_(new Date());
 
-    var carpeta = carpetaPlantillas_();
-    var archivoNombre = limpiarTexto_(nombre).replace(/[\\/:*?"<>|]/g, '-') + '.json';
-    var it = carpeta.getFilesByName(archivoNombre);
-    var contenido = JSON.stringify(payload, null, 2);
+    // Crea (o renombra) la carpeta donde vivirán sus planeaciones.
+    carpetaDePlantilla_(plantilla);
 
-    var archivo = it.hasNext() ? it.next() : null;
-    if (archivo) archivo.setContent(contenido);
-    else archivo = carpeta.createFile(archivoNombre, contenido, MimeType.PLAIN_TEXT);
+    var nombreArchivo = limpiarTexto_(plantilla.nombre)
+      .replace(/[\\/:*?"<>|]/g, '-').substring(0, 80) + ' [' + plantilla.id + '].json';
+    var json = JSON.stringify(plantilla);
 
-    return { archivoId: archivo.getId(), nombre: payload.nombre };
+    if (plantilla.archivoId) {
+      try {
+        var existente = DriveApp.getFileById(plantilla.archivoId);
+        existente.setContent(json);
+        existente.setName(nombreArchivo);
+        marcarPlantillaActiva_(existente.getId());
+        return { archivoId: existente.getId(), nombre: plantilla.nombre,
+                 id: plantilla.id, carpetaId: plantilla.carpetaId };
+      } catch (err) {
+        // Se recrea abajo.
+      }
+    }
+
+    var nuevo = carpetaPlantillas_().createFile(nombreArchivo, json, MimeType.PLAIN_TEXT);
+    marcarPlantillaActiva_(nuevo.getId());
+    return { archivoId: nuevo.getId(), nombre: plantilla.nombre,
+             id: plantilla.id, carpetaId: plantilla.carpetaId };
   });
 }
 
 function listarPlantillas() {
   return envolver_(function () {
-    var it = carpetaPlantillas_().getFilesByType(MimeType.PLAIN_TEXT);
+    var archivos = carpetaPlantillas_().getFiles();
+    var activa = PropertiesService.getUserProperties().getProperty(K.PLANTILLA) || '';
     var lista = [];
-    while (it.hasNext()) {
-      var f = it.next();
-      if (f.getName().slice(-5).toLowerCase() !== '.json') continue;
-      lista.push({
-        archivoId: f.getId(),
-        nombre: f.getName().replace(/\.json$/i, ''),
-        actualizado: f.getLastUpdated().toISOString()
-      });
+
+    while (archivos.hasNext()) {
+      var a = archivos.next();
+      if (a.isTrashed()) continue;
+      var item = { archivoId: a.getId(), nombre: a.getName(),
+                   actualizado: fechaLegible_(a.getLastUpdated()),
+                   activa: a.getId() === activa };
+      try {
+        var p = JSON.parse(a.getBlob().getDataAsString());
+        item.id = p.id || '';
+        item.nombre = p.nombre || item.nombre;
+        item.procedencia = p.procedencia || '';
+        item.cct = p.cct || '';
+        item.cicloEscolar = p.cicloEscolar || '';
+        item.tituloPlan = p.tituloPlan || '';
+        item.firmas = (p.firmas || []).length;
+        item.logos = (p.imagenes || []).filter(function (i) { return i && i.driveId; }).length;
+        item.carpetaId = p.carpetaId || '';
+        item.planeaciones = contarPlaneaciones_(item.carpetaId);
+      } catch (err) {
+        item.error = 'Plantilla ilegible.';
+      }
+      lista.push(item);
     }
-    lista.sort(function (a, b) { return a.nombre.localeCompare(b.nombre); });
+
+    lista.sort(function (a, b) { return a.actualizado < b.actualizado ? 1 : -1; });
     return lista;
+  });
+}
+
+/**
+ * Copia una plantilla con otro nombre y su propia carpeta vacía: sirve para
+ * partir de una que ya existe y cambiarle lo que haga falta.
+ * Las planeaciones de la original NO se copian.
+ */
+function duplicarPlantilla(archivoId, nombreNuevo) {
+  return envolver_(function () {
+    var p = JSON.parse(DriveApp.getFileById(archivoId).getBlob().getDataAsString());
+
+    p.id = idCorto_();
+    p.archivoId = null;
+    p.carpetaId = null;
+    p.nombre = limpiarTexto_(nombreNuevo) || (limpiarTexto_(p.nombre) || 'Plantilla') + ' (copia)';
+
+    var res = guardarPlantilla(p);
+    if (!res.ok) throw new Error(res.error);
+
+    p.archivoId = res.data.archivoId;
+    // Las imágenes se comparten con la original: mismo id de Drive.
+    (p.imagenes || []).forEach(function (img) {
+      if (img && img.driveId && !img.dataUrl) img.dataUrl = leerImagenComoDataUrl_(img.driveId);
+    });
+    return p;
   });
 }
 
 function cargarPlantilla(archivoId) {
   return envolver_(function () {
-    var f = DriveApp.getFileById(archivoId);
-    return JSON.parse(f.getBlob().getDataAsString());
+    var p = JSON.parse(DriveApp.getFileById(archivoId).getBlob().getDataAsString());
+    p.archivoId = archivoId;
+    marcarPlantillaActiva_(archivoId);
+
+    // Las imágenes viajan como id de Drive: se rehidratan para la vista previa.
+    (p.imagenes || []).forEach(function (img) {
+      if (img && img.driveId && !img.dataUrl) {
+        img.dataUrl = leerImagenComoDataUrl_(img.driveId);
+      }
+    });
+    return p;
   });
 }
 
+/**
+ * Manda a la papelera la plantilla Y la carpeta con sus planeaciones. Todo es
+ * recuperable desde la papelera de Drive.
+ */
 function eliminarPlantilla(archivoId) {
   return envolver_(function () {
-    DriveApp.getFileById(archivoId).setTrashed(true);
-    return { archivoId: archivoId, enPapelera: true };
+    var archivo = DriveApp.getFileById(archivoId);
+    var planeaciones = 0;
+
+    try {
+      var p = JSON.parse(archivo.getBlob().getDataAsString());
+      if (p.carpetaId) {
+        planeaciones = contarPlaneaciones_(p.carpetaId);
+        DriveApp.getFolderById(p.carpetaId).setTrashed(true);
+      }
+    } catch (err) {
+      // Sin carpeta que borrar.
+    }
+
+    archivo.setTrashed(true);
+    var up = PropertiesService.getUserProperties();
+    if (up.getProperty(K.PLANTILLA) === archivoId) up.deleteProperty(K.PLANTILLA);
+    return { eliminado: true, planeaciones: planeaciones };
   });
+}
+
+/** Última plantilla usada por este docente, para precargarla al abrir la app. */
+function obtenerPlantillaActiva() {
+  return envolver_(function () {
+    var id = PropertiesService.getUserProperties().getProperty(K.PLANTILLA);
+    if (!id) return null;
+    try {
+      var p = JSON.parse(DriveApp.getFileById(id).getBlob().getDataAsString());
+      p.archivoId = id;
+      (p.imagenes || []).forEach(function (img) {
+        if (img && img.driveId && !img.dataUrl) img.dataUrl = leerImagenComoDataUrl_(img.driveId);
+      });
+      return p;
+    } catch (err) {
+      PropertiesService.getUserProperties().deleteProperty(K.PLANTILLA);
+      return null;
+    }
+  });
+}
+
+function marcarPlantillaActiva_(archivoId) {
+  PropertiesService.getUserProperties().setProperty(K.PLANTILLA, archivoId);
+}
+
+/* -------------------------------------------------------------- Imágenes */
+
+var LIMITE_IMAGEN_BYTES = 3 * 1024 * 1024;
+
+/**
+ * Sube un logotipo de la plantilla. El cliente envía la imagen en base64;
+ * aquí se guarda como archivo de Drive y solo se conserva el id en el JSON.
+ *
+ * @param {string} ranura  'secretaria' | 'procedencia' | 'ensenanza'
+ * @param {string} dataUrl 'data:image/png;base64,...'
+ */
+function subirImagen(ranura, nombre, dataUrl) {
+  return envolver_(function () {
+    var blob = dataUrlABlob_(dataUrl, nombre || ranura);
+    if (blob.getBytes().length > LIMITE_IMAGEN_BYTES) {
+      throw new Error('La imagen pesa más de 3 MB. Redúcela antes de subirla.');
+    }
+
+    var archivo = carpetaImagenes_().createFile(blob);
+    archivo.setName('[' + ranura + '] ' + (nombre || archivo.getName()));
+
+    return {
+      ranura: ranura,
+      driveId: archivo.getId(),
+      nombre: archivo.getName(),
+      tipo: blob.getContentType()
+    };
+  });
+}
+
+function eliminarImagen(driveId) {
+  return envolver_(function () {
+    DriveApp.getFileById(driveId).setTrashed(true);
+    return { eliminado: true };
+  });
+}
+
+/** data:image/png;base64,XXXX -> Blob */
+function dataUrlABlob_(dataUrl, nombre) {
+  var m = /^data:([^;]+);base64,(.*)$/.exec(String(dataUrl || '').replace(/\s/g, ''));
+  if (!m) throw new Error('El formato de la imagen no es válido.');
+  return Utilities.newBlob(Utilities.base64Decode(m[2]), m[1], nombre || 'imagen');
+}
+
+function leerImagenComoDataUrl_(driveId) {
+  try {
+    var blob = DriveApp.getFileById(driveId).getBlob();
+    return 'data:' + blob.getContentType() + ';base64,' +
+      Utilities.base64Encode(blob.getBytes());
+  } catch (err) {
+    console.warn('No se pudo leer la imagen ' + driveId + ': ' + err.message);
+    return '';
+  }
 }

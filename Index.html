@@ -1,391 +1,530 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <base target="_top">
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title><?= appName ?></title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <?!= include('Styles'); ?>
+<base target="_top">
+<meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<?!= include('Styles'); ?>
 </head>
 <body>
 
+<!-- ═══════════════════════════════════════════ Bienvenida con corazón -->
+<div class="corazonazo" id="corazonazo">
+  <div class="corazonazo__cielo" id="cieloCorazones" aria-hidden="true"></div>
+  <div class="corazonazo__centro">
+    <svg class="corazonazo__latido" viewBox="0 0 120 110" role="img" aria-label="Corazón">
+      <defs>
+        <linearGradient id="gradCorazon" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0%"  stop-color="#FF6FA5"/>
+          <stop offset="55%" stop-color="#F0357E"/>
+          <stop offset="100%" stop-color="#B3195A"/>
+        </linearGradient>
+      </defs>
+      <path d="M60 104S6 71 6 37.5C6 18.4 20.9 6 37.5 6 48.6 6 56.4 12.2 60 18.6 63.6 12.2 71.4 6 82.5 6 99.1 6 114 18.4 114 37.5 114 71 60 104 60 104Z"
+            fill="url(#gradCorazon)"/>
+      <path d="M38 30c-6 0-11 5.4-11 12.4" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="5" stroke-linecap="round"/>
+    </svg>
+    <p class="corazonazo__leyenda">ESTO ES PARA TI,<br>TE AMO MI PANQUECITO DE CHOCOLATE</p>
+    <button class="btn btn--corazon" id="btnEntrar" type="button">Entrar a mis planeaciones 🧪</button>
+  </div>
+</div>
+
 <!-- ══════════════════════════════════════════════════════ Barra superior -->
 <header class="topbar">
-  <div class="topbar__brand">
-    <span class="brand-mark" aria-hidden="true"></span>
+  <div class="topbar__marca">
+    <span class="topbar__icono" aria-hidden="true">🧪</span>
     <div>
-      <h1 class="brand-name">Planeaciones<span>Comunitarias</span></h1>
-      <p class="brand-tag">Proyectos comunitarios asistidos por IA</p>
+      <strong><?= appName ?></strong>
+      <small>Planeaciones de secundaria · Nueva Escuela Mexicana</small>
     </div>
   </div>
-
-  <nav class="topbar__actions">
-    <button class="btn btn--ghost" id="btnBiblioteca" type="button">
-      <span class="ico">📚</span> Mis planeaciones
-    </button>
-    <button class="btn btn--ghost" id="btnDrive" type="button">
-      <span class="ico">🗂️</span> Carpeta en Drive
-    </button>
-    <button class="btn btn--ghost" id="btnConfig" type="button">
-      <span class="ico">⚙️</span> Configuración
-    </button>
-    <button class="btn btn--primary" id="btnGuardar" type="button">
-      <span class="ico">💾</span> Guardar
-    </button>
-  </nav>
+  <div class="topbar__acciones">
+    <button class="btn btn--ghost" id="btnCorazon" type="button" title="Volver a ver el mensajito">💗</button>
+    <button class="btn btn--ghost" id="btnInicio" type="button">🏠 Mis plantillas</button>
+    <button class="btn btn--ghost" id="btnDrive" type="button">🗂️ Drive</button>
+    <button class="btn btn--ghost" id="btnConfig" type="button">⚙️ Configuración</button>
+    <button class="btn btn--primary" id="btnGuardar" type="button">💾 Guardar</button>
+  </div>
 </header>
 
 <!-- ══════════════════════════════════════════════════════════════ Pasos -->
-<div class="stepper" id="stepper">
-  <button class="step is-active" data-paso="1" type="button">
-    <span class="step__num">1</span>
-    <span class="step__txt"><b>Insumos</b><small>Tema, grupo y tiempo</small></span>
+<nav class="stepper" id="stepper">
+  <button class="paso is-active" data-paso="0" type="button">
+    <span class="paso__num">🏠</span>
+    <span class="paso__txt"><b>Plantillas</b><small>Elige o crea una</small></span>
   </button>
-  <button class="step" data-paso="2" type="button">
-    <span class="step__num">2</span>
-    <span class="step__txt"><b>Actividades</b><small>Selección y tiempos</small></span>
+  <button class="paso" data-paso="1" type="button">
+    <span class="paso__num">🏫</span>
+    <span class="paso__txt"><b>Membrete</b><small>Logos, textos y firmas</small></span>
   </button>
-  <button class="step" data-paso="3" type="button">
-    <span class="step__num">3</span>
-    <span class="step__txt"><b>Plantilla</b><small>Maquetado drag &amp; drop</small></span>
+  <button class="paso" data-paso="2" type="button">
+    <span class="paso__num">📋</span>
+    <span class="paso__txt"><b>Datos</b><small>Tablas 1 y 2</small></span>
   </button>
-  <button class="step" data-paso="4" type="button">
-    <span class="step__num">4</span>
-    <span class="step__txt"><b>Documento</b><small>Generar en Google Docs</small></span>
+  <button class="paso" data-paso="3" type="button">
+    <span class="paso__num">🧪</span>
+    <span class="paso__txt"><b>Proyecto</b><small>Tablas 3 y 4</small></span>
   </button>
-</div>
+  <button class="paso" data-paso="4" type="button">
+    <span class="paso__num">📄</span>
+    <span class="paso__txt"><b>Documento</b><small>Diseño y descarga</small></span>
+  </button>
+</nav>
 
-<main class="lienzo">
+<main class="contenedor">
 
-  <!-- ════════════════════════════════════ PASO 1 · Insumos y generación -->
-  <section class="vista is-active" id="vista-1">
-    <div class="hero">
-      <div class="hero__texto">
-        <span class="pill">Nueva Escuela Mexicana · 3 fases, 11 momentos</span>
-        <h2>Describe tu contexto y la IA construye el proyecto</h2>
-        <p>Las actividades se generan dentro de la metodología de <b>Proyectos Comunitarios</b>,
-           ajustadas al nivel, a los recursos reales y a las características de tu grupo.</p>
+  <!-- ══════════════════════════════ PASO 0 · Plantillas y sus planeaciones -->
+  <section class="vista is-active" id="vista-0">
+    <div class="encabezado-vista">
+      <div>
+        <h2>🏠 Mis plantillas</h2>
+        <p class="sub">Cada plantilla guarda un membrete —logotipos, encabezado y firmas— y
+          dentro viven todas las planeaciones que hiciste con ella. Ábrela para ver su historial
+          o crear la planeación de esta semana.</p>
       </div>
-      <div class="hero__blob" aria-hidden="true"></div>
+      <button class="btn btn--primary" id="btnNuevaPlantilla" type="button">＋ Nueva plantilla</button>
     </div>
 
-    <form class="tarjeta form-grid" id="formInsumos" autocomplete="off">
-      <div class="campo campo--ancho">
-        <label for="tema">Tema o problemática detonadora <span class="req">*</span></label>
-        <input type="text" id="tema" name="tema" required
-               placeholder="Ej. El desperdicio de agua en el barrio y las huertas de traspatio">
-        <small>Escríbelo como una situación real de la comunidad, no como un título de libro.</small>
-      </div>
+    <div class="galeria" id="galeriaPlantillas"></div>
 
-      <div class="campo">
-        <label for="nivel">Nivel educativo <span class="req">*</span></label>
-        <select id="nivel" name="nivel" required>
-          <option value="">Selecciona…</option>
-          <option>Preescolar</option>
-          <option>Primaria</option>
-          <option>Secundaria</option>
-          <option>Telesecundaria</option>
-          <option>Media superior</option>
-          <option>Educación especial</option>
-          <option>Educación para adultos</option>
-        </select>
+    <div class="tarjeta" id="panelPlaneaciones" hidden>
+      <div class="tarjeta__cabecera">
+        <div>
+          <h3 class="tarjeta__titulo" id="tituloPlantillaAbierta">Planeaciones</h3>
+          <p class="tarjeta__ayuda" id="subPlantillaAbierta"></p>
+        </div>
+        <div class="tarjeta__cabecera-acciones">
+          <button class="btn btn--ghost" id="btnEditarMembrete" type="button">✏️ Editar membrete</button>
+          <button class="btn btn--ghost" id="btnDuplicarPlantillaAbierta" type="button">🧬 Duplicar plantilla</button>
+          <button class="btn btn--primary" id="btnNuevaPlaneacion" type="button">＋ Nueva planeación</button>
+        </div>
       </div>
-
-      <div class="campo">
-        <label for="grado">Grado / fase</label>
-        <input type="text" id="grado" name="grado" placeholder="Ej. 4.º grado (Fase 4)">
-      </div>
-
-      <div class="campo">
-        <label for="campoFormativo">Campo formativo prioritario</label>
-        <select id="campoFormativo" name="campoFormativo">
-          <option value="">Que lo decida la IA</option>
-          <option>Lenguajes</option>
-          <option>Saberes y Pensamiento Científico</option>
-          <option>Ética, Naturaleza y Sociedades</option>
-          <option>De lo Humano y lo Comunitario</option>
-          <option>Interdisciplinario (varios campos)</option>
-        </select>
-      </div>
-
-      <div class="campo campo--ancho">
-        <label for="caracteristicasGrupo">Características del grupo y del salón</label>
-        <textarea id="caracteristicasGrupo" name="caracteristicasGrupo" rows="3"
-          placeholder="Ej. 28 alumnos, 3 con lectura incipiente, 1 con TDAH, aula pequeña con bancas fijas, grupo muy participativo."></textarea>
-      </div>
-
-      <div class="campo campo--ancho">
-        <label for="recursos">Recursos realmente disponibles</label>
-        <textarea id="recursos" name="recursos" rows="3"
-          placeholder="Ej. hojas de reúso, colores, un proyector compartido, celular del docente, patio, biblioteca de aula. Sin internet en el salón."></textarea>
-      </div>
-
-      <div class="campo campo--ancho">
-        <label for="contextoComunitario">Contexto comunitario</label>
-        <textarea id="contextoComunitario" name="contextoComunitario" rows="2"
-          placeholder="Ej. Colonia semiurbana, muchas familias dedicadas al comercio, hay un mercado y un arroyo contaminado a dos calles."></textarea>
-      </div>
-
-      <div class="campo">
-        <label for="sesiones">Número de sesiones <span class="req">*</span></label>
-        <input type="number" id="sesiones" name="sesiones" min="1" max="120" value="10" required>
-      </div>
-
-      <div class="campo">
-        <label for="minutosPorSesion">Minutos por sesión <span class="req">*</span></label>
-        <input type="number" id="minutosPorSesion" name="minutosPorSesion" min="10" max="300" step="5" value="50" required>
-      </div>
-
-      <div class="campo">
-        <label for="semanas">Semanas</label>
-        <input type="number" id="semanas" name="semanas" min="1" max="40" value="3">
-      </div>
-
-      <div class="campo">
-        <label for="actividadesPorMomento">Actividades por momento</label>
-        <select id="actividadesPorMomento" name="actividadesPorMomento">
-          <option value="2">2 (recomendado)</option>
-          <option value="1">1</option>
-          <option value="3">3</option>
-        </select>
-        <small>Se generan para cada uno de los 11 momentos.</small>
-      </div>
-
-      <div class="campo campo--ancho resumen-tiempo">
-        <span class="chip chip--tiempo" id="chipTiempoTotal">500 minutos totales</span>
-        <span class="chip" id="chipActividades">≈ 22 actividades propuestas</span>
-      </div>
-
-      <div class="acciones acciones--fin campo--ancho">
-        <button type="button" class="btn btn--ghost" id="btnLimpiar">Limpiar</button>
-        <button type="submit" class="btn btn--primary btn--grande" id="btnGenerar">
-          <span class="ico">✨</span> Generar propuesta con IA
-        </button>
-      </div>
-    </form>
+      <div class="planeaciones" id="listaPlaneacionesPlantilla"></div>
+    </div>
   </section>
 
-  <!-- ══════════════════════════ PASO 2 · Selección y reparto de tiempos -->
+  <!-- ══════════════════════════════════ PASO 1 · Membrete de la plantilla -->
+  <section class="vista" id="vista-1">
+    <div class="encabezado-vista">
+      <div>
+        <h2>🏫 Membrete de la plantilla</h2>
+        <p class="sub">Lo que no cambia entre planeaciones. Al guardarlo, todas las planeaciones
+          de esta plantilla lo usan.</p>
+      </div>
+      <div class="encabezado-vista__acciones">
+        <button class="btn btn--ghost" data-ir="0" type="button">← Mis plantillas</button>
+        <button class="btn btn--secundario" id="btnGuardarPlantilla" type="button">💾 Guardar plantilla</button>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3 class="tarjeta__titulo">🏷️ Nombre de la plantilla</h3>
+      <p class="tarjeta__ayuda">Con este nombre la vas a reconocer en tu galería. Ej. «Química 3.º A» o «Secundaria 128».</p>
+      <div class="campo campo--ancho">
+        <input type="text" id="plNombre" placeholder="Química · Secundaria Técnica 128">
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3 class="tarjeta__titulo">🖼️ Imágenes del membrete</h3>
+      <p class="tarjeta__ayuda">Tres logotipos, de izquierda a derecha. PNG o JPG, máximo 3 MB cada uno.</p>
+      <div class="logos-grid" id="logosGrid"></div>
+      <div class="campo campo--ancho">
+        <label for="altoLogos">Alto de los logotipos en el documento (puntos)</label>
+        <input type="range" id="altoLogos" min="24" max="110" step="2" value="56">
+        <span class="chip" id="chipAltoLogos">56 pt</span>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3 class="tarjeta__titulo">✒️ Textos del membrete</h3>
+      <div class="form-grid">
+        <div class="campo campo--ancho">
+          <label for="plTitulo">Datos educativos (título)</label>
+          <textarea id="plTitulo" rows="3"
+            placeholder="GOBIERNO LIBRE Y SOBERANO DEL ESTADO DE ... SECRETARÍA DE EDUCACIÓN ..."></textarea>
+          <small class="pista">Un renglón por línea. Se escribe centrado y en mayúsculas.</small>
+        </div>
+        <div class="campo">
+          <label for="plProcedencia">Unidad de procedencia (CREN)</label>
+          <input type="text" id="plProcedencia" placeholder="CENTRO REGIONAL DE EDUCACIÓN NORMAL">
+        </div>
+        <div class="campo">
+          <label for="plCct">Clave del centro de trabajo</label>
+          <input type="text" id="plCct" placeholder="12DNL0001I">
+        </div>
+        <div class="campo">
+          <label for="plCiclo">Ciclo escolar</label>
+          <input type="text" id="plCiclo" placeholder="2026-2027">
+          <small class="pista">Se copia solo al campo de ciclo escolar de la tabla 1.</small>
+        </div>
+        <div class="campo">
+          <label for="plTituloPlan">Título del documento</label>
+          <input type="text" id="plTituloPlan" placeholder="PLAN DE TRABAJO">
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="tarjeta__cabecera">
+        <div>
+          <h3 class="tarjeta__titulo">✍️ Firmas</h3>
+          <p class="tarjeta__ayuda">Se imprimen al final de la planeación. Cambia cada dato: cargos y nombres varían por escuela.</p>
+        </div>
+        <div class="tarjeta__cabecera-acciones">
+          <label class="campo campo--mini">
+            <span>Firmas por renglón</span>
+            <select id="columnasFirmas">
+              <option value="2">2</option>
+              <option value="3" selected>3</option>
+              <option value="4">4</option>
+            </select>
+          </label>
+          <button class="btn btn--mini" id="btnAgregarFirma" type="button">＋ Agregar firma</button>
+        </div>
+      </div>
+      <div class="firmas-lista" id="firmasLista"></div>
+    </div>
+
+    <div class="pie-vista">
+      <button class="btn btn--ghost" data-ir="0" type="button">← Mis plantillas</button>
+      <button class="btn btn--primary btn--grande" data-ir="2" type="button">Continuar a los datos →</button>
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════ PASO 2 · Tablas 1 y 2 de la planeación -->
   <section class="vista" id="vista-2">
     <div class="encabezado-vista">
       <div>
-        <h2 id="tituloProyecto">Propuesta generada</h2>
-        <p class="sub" id="problematicaProyecto"></p>
+        <h2>📋 Datos de la planeación</h2>
+        <p class="sub">Estos son los campos que alimentan a la IA si decides usarla. Son obligatorios de todas formas: van impresos en el documento.</p>
       </div>
-      <div class="encabezado-vista__acciones">
-        <button class="btn btn--ghost" id="btnVerExplicacion" type="button">📖 Ver explicación del tema</button>
-        <button class="btn btn--ghost" id="btnVolver1" type="button">← Cambiar insumos</button>
-      </div>
+      <button class="btn btn--ghost" data-ir="1" type="button">← Membrete</button>
     </div>
 
-    <div class="panel-tiempos tarjeta">
-      <div class="panel-tiempos__cifras">
-        <div class="cifra"><b id="cifraSeleccionadas">0</b><small>actividades elegidas</small></div>
-        <div class="cifra"><b id="cifraDisponible">0</b><small>minutos disponibles</small></div>
-        <div class="cifra"><b id="cifraAsignado">0</b><small>minutos repartidos</small></div>
-        <div class="cifra"><b id="cifraSesiones">0</b><small>sesiones utilizadas</small></div>
-      </div>
-      <div class="panel-tiempos__controles">
-        <label class="campo campo--inline">
-          <span>Reparto</span>
-          <select id="modoReparto">
-            <option value="proporcional">Proporcional a lo sugerido</option>
-            <option value="equitativo">Equitativo</option>
-            <option value="manual">Manual (respetar mis minutos)</option>
+    <div class="aviso-plantilla" id="avisoPlantilla" hidden></div>
+
+    <div class="tarjeta">
+      <h3 class="tarjeta__titulo">🏫 Tabla 1 · Datos institucionales</h3>
+      <div class="form-grid">
+        <div class="campo campo--ancho">
+          <label for="dEscuela">Nombre de la escuela *</label>
+          <input type="text" id="dEscuela" placeholder='ESCUELA SECUNDARIA TÉCNICA No. 128 "AQUILES SERDÁN"'>
+        </div>
+        <div class="campo">
+          <label for="dTurno">Turno</label>
+          <select id="dTurno">
+            <option value="MATUTINO">Matutino</option>
+            <option value="VESPERTINO">Vespertino</option>
           </select>
-        </label>
-        <button class="btn btn--secundario" id="btnRecalcular" type="button">🕒 Recalcular tiempos</button>
+        </div>
+        <div class="campo">
+          <label for="dCct">Número de CCT</label>
+          <input type="text" id="dCct" placeholder="12DST0128R">
+        </div>
+        <div class="campo">
+          <label for="dDocente">Docente</label>
+          <input type="text" id="dDocente" placeholder="Profa. Areli Adán Díaz">
+        </div>
+        <div class="campo">
+          <label for="dPracticante">Practicante</label>
+          <input type="text" id="dPracticante" placeholder="Guadalupe Lugo Tinoco">
+        </div>
+        <div class="campo">
+          <label for="dNivel">Nivel escolar</label>
+          <input type="text" id="dNivel" placeholder="Secundaria · Fase 6">
+        </div>
+        <div class="campo">
+          <label for="dGradoGrupo">Grado y grupo</label>
+          <input type="text" id="dGradoGrupo" placeholder="3.º A">
+        </div>
+        <div class="campo">
+          <label for="dCiclo">Ciclo escolar</label>
+          <input type="text" id="dCiclo" placeholder="2026-2027">
+          <small class="pista">Se autocompleta con el ciclo de la plantilla.</small>
+        </div>
+        <div class="campo">
+          <label for="dCampoFormativo">Campo formativo</label>
+          <input type="text" id="dCampoFormativo" list="listaCampos" placeholder="Saberes y pensamiento científico">
+          <datalist id="listaCampos"></datalist>
+        </div>
+        <div class="campo">
+          <label for="dDisciplina">Disciplina</label>
+          <input type="text" id="dDisciplina" placeholder="QUÍMICA">
+        </div>
+        <div class="campo">
+          <label for="dSemanas">Semanas</label>
+          <input type="text" id="dSemanas" placeholder="3 semanas">
+        </div>
+        <div class="campo">
+          <label for="dSesiones">Sesiones</label>
+          <input type="number" id="dSesiones" min="1" max="200" placeholder="18">
+        </div>
+        <div class="campo">
+          <label for="dTiempoSesion">Tiempo por sesión</label>
+          <input type="text" id="dTiempoSesion" placeholder="50 minutos">
+        </div>
+        <div class="campo">
+          <label for="dPeriodo">Periodo</label>
+          <input type="text" id="dPeriodo" placeholder="1.º de marzo — 28 de marzo">
+        </div>
       </div>
-      <div class="barra-fases" id="barraFases"></div>
     </div>
 
-    <div class="filtros" id="filtrosFase"></div>
+    <div class="tarjeta">
+      <h3 class="tarjeta__titulo">📖 Tabla 2 · Contenido curricular</h3>
+      <div class="form-grid">
+        <div class="campo campo--ancho">
+          <label for="cContenido">Contenido *</label>
+          <textarea id="cContenido" rows="3"
+            placeholder="Mezclas, compuestos y elementos representados con el modelo corpuscular…"></textarea>
+        </div>
+        <div class="campo campo--ancho">
+          <label for="cTemas">Temas</label>
+          <textarea id="cTemas" rows="3" placeholder="Un tema por línea"></textarea>
+        </div>
+        <div class="campo campo--ancho">
+          <label for="cPda">Proceso de desarrollo de aprendizaje</label>
+          <textarea id="cPda" rows="4" placeholder="Un proceso por línea"></textarea>
+        </div>
 
-    <div id="listaMomentos" class="lista-momentos"></div>
+        <div class="campo campo--ancho">
+          <label>Ejes articuladores <small class="pista">Puedes elegir uno o varios</small></label>
+          <div class="ejes" id="ejesLista"></div>
+        </div>
 
-    <div class="acciones acciones--fin">
-      <button class="btn btn--primary btn--grande" id="btnIrPlantilla" type="button">
-        Diseñar plantilla →
-      </button>
+        <div class="campo campo--ancho">
+          <label for="cCamposVinculados">Campos formativos con que se vincula</label>
+          <textarea id="cCamposVinculados" rows="3"></textarea>
+        </div>
+
+        <div class="campo">
+          <label for="cMetodologia">Metodología</label>
+          <textarea id="cMetodologia" rows="3" placeholder="STEAM · Aprendizaje basado en indagación"></textarea>
+        </div>
+        <div class="campo">
+          <label for="cTecnicas">Técnicas</label>
+          <textarea id="cTecnicas" rows="3" placeholder="Una por línea: Interrogativo, Observación…"></textarea>
+        </div>
+        <div class="campo">
+          <label for="cEvalFormativa">Evaluación formativa</label>
+          <textarea id="cEvalFormativa" rows="3" placeholder="Una por línea: Cuaderno de clase, Participación…"></textarea>
+        </div>
+        <div class="campo">
+          <label for="cEvalSumativa">Evaluación sumativa</label>
+          <textarea id="cEvalSumativa" rows="3" placeholder="Una por línea: Exposición, Prácticas…"></textarea>
+        </div>
+
+        <div class="campo">
+          <label for="cNumFases">Fases del proyecto</label>
+          <input type="number" id="cNumFases" min="1" max="10" value="5">
+          <small class="pista">Cuántos bloques de fase llevará la tabla 4.</small>
+        </div>
+      </div>
+    </div>
+
+    <div class="pie-vista">
+      <button class="btn btn--ghost" data-ir="1" type="button">← Membrete</button>
+      <button class="btn btn--primary btn--grande" data-ir="3" type="button">Continuar al proyecto →</button>
     </div>
   </section>
 
-  <!-- ═══════════════════════════ PASO 3 · Editor de plantilla drag & drop -->
+  <!-- ═══════════════════════════════ PASO 3 · Tablas 3 y 4 (IA opcional) -->
   <section class="vista" id="vista-3">
     <div class="encabezado-vista">
       <div>
-        <h2>Diseñador de plantilla</h2>
-        <p class="sub">Arrastra los bloques de la izquierda a las celdas de la tabla. También puedes
-           escribir texto libre y usar marcadores como <code>{{explicacion_resumen}}</code>.</p>
+        <h2>🧪 Proyecto y fases</h2>
+        <p class="sub">Escríbelo tú o pide que la IA lo redacte. Aunque uses IA, todo queda editable.</p>
+      </div>
+      <button class="btn btn--ghost" data-ir="2" type="button">← Datos</button>
+    </div>
+
+    <div class="tarjeta tarjeta--ia">
+      <label class="interruptor">
+        <input type="checkbox" id="usarIA">
+        <span class="interruptor__pista"><span class="interruptor__bolita"></span></span>
+        <span class="interruptor__texto">
+          <b>Redactar con IA (opcional)</b>
+          <small>Apagado: llenas las tablas 3 y 4 a mano. Encendido: la IA propone y tú corriges.</small>
+        </span>
+      </label>
+
+      <div class="ia-panel" id="iaPanel" hidden>
+        <div class="form-grid">
+          <div class="campo">
+            <label for="iaActividades">Actividades por fase</label>
+            <select id="iaActividades">
+              <option value="3">3 · breve</option>
+              <option value="5" selected>5 · equilibrado</option>
+              <option value="8">8 · detallado</option>
+            </select>
+          </div>
+          <div class="campo campo--ancho">
+            <label for="iaEnfoque">Indicación adicional (opcional)</label>
+            <input type="text" id="iaEnfoque" placeholder="Ej. que el producto final se pueda hacer con material reciclado">
+          </div>
+        </div>
+        <div class="ia-panel__acciones">
+          <span class="chip" id="chipEstadoIA">Sin API key configurada</span>
+          <button class="btn btn--primary" id="btnGenerarIA" type="button">✨ Generar tablas 3 y 4</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <h3 class="tarjeta__titulo">🎯 Tabla 3 · El proyecto</h3>
+      <div class="form-grid">
+        <div class="campo campo--ancho">
+          <label for="pNombre">Nombre del proyecto</label>
+          <input type="text" id="pNombre" placeholder="La importancia de los hábitos de higiene">
+        </div>
+        <div class="campo campo--ancho">
+          <label for="pProblematica">Problemática o tema de interés de los alumnos</label>
+          <textarea id="pProblematica" rows="2"></textarea>
+        </div>
+        <div class="campo campo--ancho">
+          <label for="pProposito">Propósito</label>
+          <textarea id="pProposito" rows="3"></textarea>
+        </div>
+        <div class="campo campo--ancho">
+          <label for="pProductoFinal">Producto final esperado</label>
+          <textarea id="pProductoFinal" rows="2"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="tarjeta">
+      <div class="tarjeta__cabecera">
+        <div>
+          <h3 class="tarjeta__titulo">🗂️ Tabla 4 · Fases del proyecto</h3>
+          <p class="tarjeta__ayuda">La segunda columna cambia de nombre en cada fase: escribe el que corresponda.</p>
+        </div>
+        <div class="tarjeta__cabecera-acciones">
+          <span class="chip" id="chipSesiones">0 / 0 sesiones</span>
+          <button class="btn btn--mini" id="btnBalancear" type="button">⚖️ Balancear sesiones</button>
+          <button class="btn btn--mini" id="btnAgregarFase" type="button">＋ Agregar fase</button>
+        </div>
+      </div>
+      <div class="fases-lista" id="fasesLista"></div>
+    </div>
+
+    <div class="tarjeta">
+      <h3 class="tarjeta__titulo">📝 Observaciones</h3>
+      <div class="campo campo--ancho">
+        <textarea id="observaciones" rows="3" placeholder="Ajustes, incidencias o acuerdos con la docente titular…"></textarea>
+      </div>
+    </div>
+
+    <div class="pie-vista">
+      <button class="btn btn--ghost" data-ir="2" type="button">← Datos</button>
+      <button class="btn btn--primary btn--grande" data-ir="4" type="button">Armar el documento →</button>
+    </div>
+  </section>
+
+  <!-- ═════════════════════════ PASO 4 · Editor arrastrable y vista previa -->
+  <section class="vista" id="vista-4">
+    <div class="encabezado-vista">
+      <div>
+        <h2>📄 Tu planeación</h2>
+        <p class="sub">Arrastra los bloques para reordenarlos y haz clic en cualquier celda para editarla. Lo que ves es lo que se genera.</p>
       </div>
       <div class="encabezado-vista__acciones">
-        <button class="btn btn--ghost" id="btnPlantillasGuardadas" type="button">📐 Plantillas</button>
-        <button class="btn btn--ghost" id="btnGuardarPlantilla" type="button">💾 Guardar maquetado</button>
-        <button class="btn btn--ghost" id="btnVolver2" type="button">← Actividades</button>
+        <button class="btn btn--ghost" id="btnRehacer" type="button">🔄 Rehacer desde los datos</button>
+        <button class="btn btn--ghost" data-ir="3" type="button">← Proyecto</button>
       </div>
     </div>
 
     <div class="editor">
+      <!-- ─────────────────────────────────────────── Bloques y apariencia -->
+      <aside class="panel">
+        <h3 class="panel__titulo">🧱 Bloques</h3>
+        <p class="panel__ayuda">Arrastra para reordenar. El ojo los oculta sin borrarlos.</p>
+        <ul class="bloques" id="listaBloques"></ul>
 
-      <!-- ─────────────────────────────── Paleta de bloques arrastrables -->
-      <aside class="paleta" id="paleta">
-        <div class="paleta__buscador">
-          <input type="search" id="buscarBloque" placeholder="Buscar bloque…" aria-label="Buscar bloque">
-        </div>
-        <div class="paleta__lista" id="paletaLista"></div>
-        <p class="paleta__ayuda">
-          Arrastra un bloque a cualquier celda. Doble clic en un bloque para insertarlo
-          en la celda seleccionada.
-        </p>
-      </aside>
-
-      <!-- ───────────────────────────────────────── Rejilla de la tabla -->
-      <div class="tablero">
-        <div class="tablero__barra">
-          <div class="grupo-btn">
-            <button class="btn btn--mini" data-accion="fila-add" type="button">＋ Fila</button>
-            <button class="btn btn--mini" data-accion="fila-del" type="button">－ Fila</button>
-            <button class="btn btn--mini" data-accion="col-add" type="button">＋ Columna</button>
-            <button class="btn btn--mini" data-accion="col-del" type="button">－ Columna</button>
-          </div>
-          <div class="grupo-btn">
-            <button class="btn btn--mini" data-accion="fusionar-h" type="button">⇔ Combinar →</button>
-            <button class="btn btn--mini" data-accion="fusionar-v" type="button">⇕ Combinar ↓</button>
-            <button class="btn btn--mini" data-accion="separar" type="button">⤫ Separar</button>
-          </div>
-          <div class="grupo-btn">
-            <button class="btn btn--mini" data-accion="encabezado" type="button">🏷️ Encabezado</button>
-            <button class="btn btn--mini" data-accion="limpiar-celda" type="button">🧹 Vaciar celda</button>
-          </div>
-          <div class="grupo-btn grupo-btn--fin">
-            <select id="preajuste" class="select-mini" aria-label="Diseño base">
-              <option value="">Diseños base…</option>
-              <option value="clasica">Tabla clásica por momentos</option>
-              <option value="sesiones">Por sesiones</option>
-              <option value="fases">Por fases (3 columnas)</option>
-              <option value="compacta">Ficha compacta</option>
-              <option value="vacia">Tabla vacía</option>
+        <h3 class="panel__titulo">🎨 Apariencia</h3>
+        <div class="panel__cuerpo">
+          <label class="campo campo--mini">
+            <span>Orientación</span>
+            <select id="esOrientacion">
+              <option value="horizontal">Horizontal</option>
+              <option value="vertical">Vertical</option>
             </select>
-          </div>
-        </div>
-
-        <div class="tablero__scroll">
-          <table class="rejilla" id="rejilla"></table>
-        </div>
-      </div>
-
-      <!-- ─────────────────────────────────── Propiedades e institución -->
-      <aside class="props">
-        <div class="props__seccion">
-          <h3>Celda seleccionada</h3>
-          <div id="propsCelda" class="props__cuerpo">
-            <p class="vacio">Selecciona una celda de la tabla.</p>
-          </div>
-        </div>
-
-        <div class="props__seccion">
-          <h3>Estilo del documento</h3>
-          <div class="props__cuerpo">
-            <label class="campo campo--mini">
-              <span>Color principal</span>
-              <input type="color" id="estiloColorPrimario" value="#E5397F">
-            </label>
-            <label class="campo campo--mini">
-              <span>Fondo de encabezados</span>
-              <input type="color" id="estiloFondoEncabezado" value="#FDE7F0">
-            </label>
-            <label class="campo campo--mini">
-              <span>Texto de encabezados</span>
-              <input type="color" id="estiloColorEncabezado" value="#8A1F4C">
-            </label>
-            <label class="campo campo--mini">
-              <span>Color del borde</span>
-              <input type="color" id="estiloColorBorde" value="#C8CDD8">
-            </label>
-            <label class="campo campo--mini">
-              <span>Grosor del borde</span>
-              <input type="number" id="estiloAnchoBorde" min="0" max="6" step="0.5" value="1">
-            </label>
-            <label class="campo campo--mini">
-              <span>Tipografía</span>
-              <select id="estiloFuente">
-                <option>Arial</option><option>Verdana</option><option>Georgia</option>
-                <option>Times New Roman</option><option>Calibri</option><option>Roboto</option>
-              </select>
-            </label>
-            <label class="campo campo--mini">
-              <span>Tamaño base</span>
-              <input type="number" id="estiloTamano" min="6" max="16" value="9">
-            </label>
-            <label class="campo campo--mini">
-              <span>Orientación</span>
-              <select id="estiloOrientacion">
-                <option value="vertical">Vertical (carta)</option>
-                <option value="horizontal">Horizontal (carta)</option>
-              </select>
-            </label>
-          </div>
-        </div>
-
-        <div class="props__seccion">
-          <h3>Datos institucionales</h3>
-          <div class="props__cuerpo" id="propsMeta">
-            <label class="campo campo--mini"><span>Docente</span><input type="text" data-meta="docente"></label>
-            <label class="campo campo--mini"><span>Escuela</span><input type="text" data-meta="escuela"></label>
-            <label class="campo campo--mini"><span>CCT</span><input type="text" data-meta="cct"></label>
-            <label class="campo campo--mini"><span>Zona / sector</span><input type="text" data-meta="zona"></label>
-            <label class="campo campo--mini"><span>Ciclo escolar</span><input type="text" data-meta="ciclo" placeholder="2025-2026"></label>
-            <label class="campo campo--mini"><span>Grado y grupo</span><input type="text" data-meta="gradoGrupo"></label>
-            <label class="campo campo--mini"><span>Asignatura / campo</span><input type="text" data-meta="asignatura"></label>
-            <label class="campo campo--mini"><span>Periodo</span><input type="text" data-meta="periodo" placeholder="Del 6 al 24 de octubre"></label>
-            <label class="campo campo--mini"><span>Director(a)</span><input type="text" data-meta="director"></label>
-            <button class="btn btn--mini" id="btnGuardarPerfil" type="button">Recordar mis datos</button>
-          </div>
+          </label>
+          <label class="campo campo--mini">
+            <span>Papel</span>
+            <select id="esPapel">
+              <option value="a4">A4</option>
+              <option value="carta">Carta</option>
+            </select>
+          </label>
+          <label class="campo campo--mini">
+            <span>Tipografía</span>
+            <select id="esFuente">
+              <option>Arial</option>
+              <option>Calibri</option>
+              <option>Times New Roman</option>
+              <option>Verdana</option>
+              <option>Georgia</option>
+            </select>
+          </label>
+          <label class="campo campo--mini">
+            <span>Tamaño base</span>
+            <input type="number" id="esTamano" min="6" max="14" value="9">
+          </label>
+          <label class="campo campo--mini">
+            <span>Fondo de encabezados</span>
+            <input type="color" id="esFondoEncabezado" value="#FDE7F0">
+          </label>
+          <label class="campo campo--mini">
+            <span>Texto de encabezados</span>
+            <input type="color" id="esColorEncabezado" value="#8A1F4C">
+          </label>
+          <label class="campo campo--mini">
+            <span>Color del borde</span>
+            <input type="color" id="esColorBorde" value="#5B6472">
+          </label>
+          <label class="campo campo--mini">
+            <span>Grosor del borde</span>
+            <input type="number" id="esAnchoBorde" min="0" max="4" step="0.5" value="1">
+          </label>
         </div>
       </aside>
-    </div>
 
-    <div class="acciones acciones--fin">
-      <button class="btn btn--primary btn--grande" id="btnIrDocumento" type="button">
-        Vista previa y documento →
-      </button>
-    </div>
-  </section>
-
-  <!-- ════════════════════════════════ PASO 4 · Vista previa y generación -->
-  <section class="vista" id="vista-4">
-    <div class="encabezado-vista">
-      <div>
-        <h2>Vista previa del documento</h2>
-        <p class="sub">Así se escribirá en Google Docs. Si algo no cuadra, vuelve al diseñador.</p>
-      </div>
-      <div class="encabezado-vista__acciones">
-        <button class="btn btn--ghost" id="btnVolver3" type="button">← Diseñador</button>
+      <!-- ─────────────────────────────────────────────────── Vista previa -->
+      <div class="lienzo">
+        <div class="lienzo__barra">
+          <span class="chip" id="chipHoja">A4 horizontal</span>
+          <div class="lienzo__zoom">
+            <button class="btn btn--mini" id="btnZoomMenos" type="button">−</button>
+            <span id="chipZoom">100 %</span>
+            <button class="btn btn--mini" id="btnZoomMas" type="button">＋</button>
+          </div>
+        </div>
+        <div class="lienzo__scroll">
+          <div class="hoja" id="hoja"></div>
+        </div>
       </div>
     </div>
 
-    <div class="tarjeta bloque-final">
-      <label class="campo">
-        <span>Nombre del documento</span>
-        <input type="text" id="nombreDocumento" placeholder="Planeación · Proyecto comunitario">
-      </label>
-      <div class="opciones-final">
-        <label class="check"><input type="checkbox" id="optSobrescribir"> Actualizar el documento ya generado en vez de crear otro</label>
-        <label class="check"><input type="checkbox" id="optPDF"> Exportar también en PDF</label>
-        <label class="check"><input type="checkbox" id="optAnexos" checked> Añadir anexos (evaluación, recursos y agenda de sesiones)</label>
+    <div class="tarjeta tarjeta--final">
+      <div class="form-grid">
+        <div class="campo campo--ancho">
+          <label for="nombreDocumento">Nombre del documento en Drive</label>
+          <input type="text" id="nombreDocumento" placeholder="Plan de trabajo · 3.º A · Química">
+        </div>
+        <div class="campo campo--ancho">
+          <label class="check"><input type="checkbox" id="optSobrescribir"> Actualizar el documento ya generado en vez de crear otro</label>
+        </div>
       </div>
-      <div class="acciones acciones--fin">
-        <button class="btn btn--primary btn--grande" id="btnGenerarDoc" type="button">
-          <span class="ico">📄</span> Generar en Google Docs
+      <div class="pie-vista pie-vista--centrado">
+        <button class="btn btn--primary btn--grande" id="btnConfirmar" type="button">
+          ✅ Confirmar planeación y generar
         </button>
       </div>
-      <div id="resultadoDoc" class="resultado" hidden></div>
+      <div class="resultado" id="resultadoDoc" hidden></div>
     </div>
-
-    <div class="previa" id="previa"></div>
   </section>
 </main>
 
@@ -393,82 +532,45 @@
 
 <div class="modal" id="modalConfig" hidden>
   <div class="modal__caja">
-    <header class="modal__head">
-      <h3>Configuración de la IA</h3>
-      <button class="btn btn--icono" data-cerrar type="button">✕</button>
+    <header class="modal__cabecera">
+      <h3>⚙️ Configuración de IA</h3>
+      <button class="modal__cerrar" data-cerrar="modalConfig" type="button">✕</button>
     </header>
     <div class="modal__cuerpo">
-      <label class="campo">
-        <span>Proveedor</span>
+      <p class="tarjeta__ayuda">La IA es opcional. Sin clave, la plataforma funciona igual escribiendo a mano.</p>
+      <div class="campo">
+        <label for="cfgProveedor">Proveedor</label>
         <select id="cfgProveedor">
           <option value="gemini">Google Gemini</option>
           <option value="openai">OpenAI</option>
-          <option value="anthropic">Anthropic (Claude)</option>
+          <option value="anthropic">Anthropic</option>
         </select>
-      </label>
-      <label class="campo">
-        <span>Modelo</span>
+      </div>
+      <div class="campo">
+        <label for="cfgModelo">Modelo</label>
         <input type="text" id="cfgModelo" placeholder="gemini-2.0-flash">
-      </label>
-      <label class="campo">
-        <span>API key</span>
-        <input type="password" id="cfgApiKey" placeholder="Pega tu clave aquí">
-        <small id="cfgEstadoKey">Sin configurar.</small>
-      </label>
-      <p class="nota">
-        La clave se guarda en las <b>propiedades del script</b>, no en el navegador ni en el documento.
-        Escribe <code>BORRAR</code> y guarda para eliminarla.
-      </p>
+      </div>
+      <div class="campo">
+        <label for="cfgApiKey">API key</label>
+        <input type="password" id="cfgApiKey" placeholder="Déjalo vacío para no cambiarla">
+        <small class="pista" id="cfgEstado"></small>
+      </div>
     </div>
     <footer class="modal__pie">
-      <button class="btn btn--ghost" id="btnProbarIA" type="button">Probar conexión</button>
+      <button class="btn btn--ghost" id="btnProbarIA" type="button">🔌 Probar conexión</button>
       <button class="btn btn--primary" id="btnGuardarConfig" type="button">Guardar</button>
     </footer>
   </div>
 </div>
 
-<div class="modal" id="modalBiblioteca" hidden>
-  <div class="modal__caja modal__caja--ancha">
-    <header class="modal__head">
-      <h3>Mis planeaciones</h3>
-      <button class="btn btn--icono" data-cerrar type="button">✕</button>
-    </header>
-    <div class="modal__cuerpo" id="listaBiblioteca">
-      <p class="vacio">Cargando…</p>
-    </div>
-  </div>
-</div>
-
-<div class="modal" id="modalExplicacion" hidden>
-  <div class="modal__caja modal__caja--ancha">
-    <header class="modal__head">
-      <h3>Explicación del tema</h3>
-      <button class="btn btn--icono" data-cerrar type="button">✕</button>
-    </header>
-    <div class="modal__cuerpo" id="cuerpoExplicacion"></div>
-  </div>
-</div>
-
-<div class="modal" id="modalPlantillas" hidden>
-  <div class="modal__caja">
-    <header class="modal__head">
-      <h3>Maquetados guardados</h3>
-      <button class="btn btn--icono" data-cerrar type="button">✕</button>
-    </header>
-    <div class="modal__cuerpo" id="listaPlantillas"></div>
-  </div>
-</div>
-
-<!-- ══════════════════════════════════════════ Cargador y notificaciones -->
 <div class="cargando" id="cargando" hidden>
   <div class="cargando__caja">
-    <div class="spinner" aria-hidden="true"></div>
+    <div class="cargando__matraz" aria-hidden="true">🧪</div>
     <p id="cargandoTexto">Trabajando…</p>
-    <small id="cargandoNota">Las respuestas de la IA pueden tardar hasta un minuto.</small>
   </div>
 </div>
 
-<div class="toasts" id="toasts" aria-live="polite"></div>
+<div class="toast" id="toast" hidden></div>
 
 <?!= include('JavaScript'); ?>
 </body>

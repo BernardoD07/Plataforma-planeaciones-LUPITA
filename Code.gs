@@ -1,25 +1,25 @@
 /**
  * ============================================================================
- *  PLANEACIONES COMUNITARIAS  ·  Code.gs
+ *  PlaneacionesLUPITA<3  ·  Code.gs
  *  Punto de entrada del Web App + configuración global + utilidades comunes.
  *
  *  Archivos del proyecto:
- *    Code.gs        -> doGet, include, configuración, utilidades
- *    IA.gs          -> adaptador multi-proveedor (Gemini / OpenAI / Anthropic)
- *    Tiempos.gs     -> distribución automática de tiempos por sesión
- *    Almacen.gs     -> persistencia en Google Drive (JSON de proyectos)
- *    Documento.gs   -> construcción del Google Doc a partir de la plantilla
+ *    Code.gs        -> doGet, include, configuración, catálogos, utilidades
+ *    IA.gs          -> generación OPCIONAL del proyecto y sus fases (tablas 3 y 4)
+ *    Tiempos.gs     -> reparto de sesiones entre las fases del proyecto
+ *    Almacen.gs     -> persistencia en Drive (planeaciones, plantillas, imágenes)
+ *    Documento.gs   -> construcción del Google Doc por bloques
  *    Index.html     -> estructura del frontend
  *    Styles.html    -> estilos (tokens CSS intercambiables)
- *    JavaScript.html-> lógica de cliente (wizard, drag & drop, editor)
+ *    JavaScript.html-> wizard, editor arrastrable, vista previa
  * ============================================================================
  */
 
 var APP = {
-  nombre: 'Planeaciones Comunitarias',
-  version: '1.0.0',
-  carpetaRaiz: 'Planeaciones Comunitarias',
-  subcarpetaProyectos: '01 Proyectos (JSON)',
+  nombre: 'PlaneacionesLUPITA<3',
+  version: '2.0.0',
+  carpetaRaiz: 'Planeaciones Secundaria',
+  subcarpetaProyectos: '01 Planeaciones (JSON)',
   subcarpetaDocumentos: '02 Documentos generados'
 };
 
@@ -28,8 +28,79 @@ var K = {
   PROVEEDOR: 'IA_PROVEEDOR',   // gemini | openai | anthropic
   MODELO:    'IA_MODELO',
   API_KEY:   'IA_API_KEY',
-  CARPETA:   'DRIVE_CARPETA_ID'
+  CARPETA:   'DRIVE_CARPETA_ID',
+  PLANTILLA: 'PLANTILLA_ACTIVA'   // id del archivo de plantilla institucional
 };
+
+/* --------------------------------------------------------------- Catálogos
+ * Listas fijas del formato oficial. El frontend las pide una sola vez.
+ */
+
+var EJES_ARTICULADORES = [
+  'Inclusión',
+  'Interculturalidad crítica',
+  'Igualdad de género',
+  'Pensamiento crítico',
+  'Vida saludable',
+  'Artes y experiencias estéticas',
+  'Apropiación de las culturas a través de la lectura y escritura'
+];
+
+var CAMPOS_FORMATIVOS = [
+  'Saberes y pensamiento científico',
+  'Lenguajes',
+  'Ética, Naturaleza y Sociedades',
+  'De lo humano y lo comunitario'
+];
+
+/** Nombres sugeridos para las fases; el docente puede cambiarlos. */
+var FASES_SUGERIDAS = [
+  { fase: 'Fase 1. Introducción al tema y a la forma de trabajo.',
+    construir: 'Selección / identificación / negociación del tema' },
+  { fase: 'Fase 2. Exploración y construcción del conocimiento.',
+    construir: 'Diseño de la investigación · Desarrollo y exploración' },
+  { fase: 'Fase 3. Representación y experimentación.',
+    construir: 'Representación' },
+  { fase: 'Fase 4. Demostración de lo aprendido.',
+    construir: 'Actividades' },
+  { fase: 'Fase 5. Metacognición.',
+    construir: 'Metacognición' },
+  { fase: 'Fase 6. Difusión y cierre.',
+    construir: 'Difusión de resultados' },
+  { fase: 'Fase 7. Seguimiento.',
+    construir: 'Seguimiento y mejora' }
+];
+
+/** Firmas que trae por defecto el formato del CREN. */
+var FIRMAS_POR_DEFECTO = [
+  { rol: 'ELABORÓ DOCENTE EN FORMACIÓN',
+    detalle: 'LIC. EN ENSEÑANZA Y APRENDIZAJE DE LA QUÍMICA EN EDUCACIÓN SECUNDARIA',
+    nombre: 'C. GUADALUPE LUGO TINOCO' },
+  { rol: 'REVISÓ',
+    detalle: 'COORDINADORA DEL CURSO ESTRATEGIAS DE TRABAJO DOCENTE Y SABERES PEDAGÓGICOS',
+    nombre: '' },
+  { rol: 'REVISÓ',
+    detalle: 'TITULAR DE LA DISCIPLINA',
+    nombre: '' }
+];
+
+function obtenerCatalogos() {
+  return {
+    ejes: EJES_ARTICULADORES,
+    campos: CAMPOS_FORMATIVOS,
+    fasesSugeridas: FASES_SUGERIDAS,
+    firmasPorDefecto: FIRMAS_POR_DEFECTO,
+    cicloSugerido: cicloEscolarSugerido_()
+  };
+}
+
+/** Ciclo escolar en curso: agosto marca el cambio de año lectivo. */
+function cicloEscolarSugerido_() {
+  var hoy = new Date();
+  var anio = hoy.getFullYear();
+  var inicio = (hoy.getMonth() >= 7) ? anio : anio - 1;
+  return inicio + '-' + (inicio + 1);
+}
 
 /* ---------------------------------------------------------------- Web App */
 
@@ -50,21 +121,18 @@ function include(nombreArchivo) {
 
 /* ------------------------------------------------------------ Preferencias
  * La API key vive en ScriptProperties (compartida por el despliegue).
- * Los datos institucionales del docente viven en UserProperties (por usuario).
+ * La plantilla activa y la carpeta viven en UserProperties (por docente).
  */
 
 function obtenerConfiguracion() {
   var sp = PropertiesService.getScriptProperties();
-  var up = PropertiesService.getUserProperties();
   var apiKey = sp.getProperty(K.API_KEY) || '';
-  var perfil = up.getProperty('PERFIL_DOCENTE');
 
   return {
     proveedor: sp.getProperty(K.PROVEEDOR) || 'gemini',
     modelo: sp.getProperty(K.MODELO) || modeloPorDefecto_(sp.getProperty(K.PROVEEDOR) || 'gemini'),
     tieneApiKey: !!apiKey,
     apiKeyMascara: apiKey ? apiKey.slice(0, 4) + '••••••••' + apiKey.slice(-4) : '',
-    perfil: perfil ? JSON.parse(perfil) : null,
     usuario: obtenerCorreoUsuario_(),
     version: APP.version
   };
@@ -82,13 +150,6 @@ function guardarConfiguracion(cfg) {
   if (cfg.apiKey === 'BORRAR') sp.deleteProperty(K.API_KEY);
   else if (cfg.apiKey) sp.setProperty(K.API_KEY, cfg.apiKey.trim());
   return obtenerConfiguracion();
-}
-
-/** Datos institucionales del docente, persistidos por usuario. */
-function guardarPerfilDocente(perfil) {
-  PropertiesService.getUserProperties()
-    .setProperty('PERFIL_DOCENTE', JSON.stringify(perfil || {}));
-  return { ok: true };
 }
 
 function modeloPorDefecto_(proveedor) {
@@ -110,12 +171,12 @@ function extraerJson_(texto) {
   if (!texto) throw new Error('La IA devolvió una respuesta vacía.');
   var limpio = String(texto).trim();
 
-  // Quita cercos de código ```json ... ```
-  limpio = limpio.replace(/^```(?:json)?\s*/i, '').replace(/```\s*$/, '').trim();
+  // Quita cercos de código con acentos graves.
+  limpio = limpio.replace(/^`{3}(?:json)?\s*/i, '').replace(/`{3}\s*$/, '').trim();
 
   try { return JSON.parse(limpio); } catch (err) { /* seguimos intentando */ }
 
-  // Rescate: recorta desde la primera { hasta la última } balanceada.
+  // Rescate: recorta desde la primera { hasta la última }.
   var inicio = limpio.indexOf('{');
   var fin = limpio.lastIndexOf('}');
   if (inicio === -1 || fin === -1 || fin <= inicio) {
@@ -140,7 +201,7 @@ function idCorto_() {
 }
 
 function fechaLegible_(fecha) {
-  return Utilities.formatDate(fecha || new Date(), APP_TZ_(), "dd/MM/yyyy HH:mm");
+  return Utilities.formatDate(fecha || new Date(), APP_TZ_(), 'dd/MM/yyyy HH:mm');
 }
 
 function APP_TZ_() {

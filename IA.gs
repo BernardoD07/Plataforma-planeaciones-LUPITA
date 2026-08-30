@@ -1,309 +1,295 @@
 /**
  * ============================================================================
- *  IA.gs · Adaptador multi-proveedor y generación de insumos didácticos.
- *  Proveedores soportados: Gemini, OpenAI, Anthropic.
+ *  IA.gs · Generación OPCIONAL del proyecto (tabla 3) y de sus fases (tabla 4).
+ *
+ *  La IA nunca es obligatoria: la plataforma funciona completa escribiendo a
+ *  mano. Estas funciones solo se invocan si el docente activa el interruptor
+ *  "Redactar con IA" y existe una API key configurada.
+ *
+ *  Todo lo que la IA produce cae en tablas 3 y 4; las tablas 1 y 2 siempre las
+ *  captura la persona, porque son datos administrativos y curriculares.
  * ============================================================================
  */
 
-/**
- * Estructura oficial de la metodología de Proyectos Comunitarios (NEM):
- * 3 fases · 11 momentos. Se usa como andamiaje fijo del prompt.
- */
-var FASES_PROYECTO_COMUNITARIO = [
-  { fase: 'Planeación',   momentos: ['Identificación', 'Recuperación', 'Planificación'] },
-  { fase: 'Acción',       momentos: ['Acercamiento', 'Comprensión y producción', 'Reconocimiento', 'Concreción'] },
-  { fase: 'Intervención', momentos: ['Integración', 'Difusión', 'Consideraciones', 'Avances'] }
-];
-
-function obtenerFasesMetodologia() {
-  return FASES_PROYECTO_COMUNITARIO;
-}
-
-/* ------------------------------------------------------- API para cliente */
+/* --------------------------------------------------------- Punto de entrada */
 
 /**
- * Fase 1 del flujo: genera explicación del tema + banco de actividades.
- * @param {Object} insumos {tema, nivel, grado, campoFormativo, caracteristicasGrupo,
- *                          recursos, contextoComunitario, sesiones, minutosPorSesion,
- *                          semanas, actividadesPorMomento}
+ * Genera nombre del proyecto, problemática, propósito, producto final y el
+ * contenido de cada fase, a partir de lo capturado en las tablas 1 y 2.
+ *
+ * @param {Object} datos      Tabla 1 (escuela, grado, sesiones, disciplina…).
+ * @param {Object} contenido  Tabla 2 (contenido, temas, PDA, ejes, metodología…).
+ * @param {Object=} opciones  {numFases, actividadesPorFase, enfoque}
  * @return {{ok:boolean, data:Object}}
  */
-function generarInsumos(insumos) {
+function generarProyecto(datos, contenido, opciones) {
   return envolver_(function () {
-    validarInsumos_(insumos);
-    var salida = llamarIA_(promptSistema_(), promptInsumos_(insumos), 8000);
-    var json = extraerJson_(salida);
-    return normalizarPropuesta_(json, insumos);
+    validarEntradas_(datos, contenido);
+    opciones = opciones || {};
+
+    var numFases = Math.min(Math.max(Number(opciones.numFases) || 5, 1), 10);
+    var porFase = Math.min(Math.max(Number(opciones.actividadesPorFase) || 5, 2), 12);
+
+    var texto = llamarIA_(
+      promptSistema_(),
+      promptProyecto_(datos, contenido, numFases, porFase, opciones.enfoque),
+      8000, true
+    );
+
+    return normalizarPropuesta_(extraerJson_(texto), datos, contenido, numFases);
   });
 }
 
-/** Regenera únicamente las actividades de un momento concreto. */
-function regenerarMomento(insumos, nombreFase, nombreMomento, actividadesActuales) {
+/**
+ * Vuelve a redactar una sola fase sin tocar el resto de la planeación.
+ * @param {number} indice  Posición de la fase (base 0).
+ */
+function regenerarFase(datos, contenido, proyecto, fases, indice) {
   return envolver_(function () {
-    validarInsumos_(insumos);
-    var prompt = promptRegenerarMomento_(insumos, nombreFase, nombreMomento, actividadesActuales);
-    var json = extraerJson_(llamarIA_(promptSistema_(), prompt, 3000));
-    var lista = json.actividades || [];
-    return lista.map(function (a, i) {
-      return normalizarActividad_(a, nombreFase, nombreMomento, i, insumos);
-    });
+    validarEntradas_(datos, contenido);
+    var actual = (fases || [])[indice];
+    if (!actual) throw new Error('No se encontró la fase que quieres regenerar.');
+
+    var texto = llamarIA_(
+      promptSistema_(),
+      promptFase_(datos, contenido, proyecto, fases, indice),
+      4000, true
+    );
+
+    var json = extraerJson_(texto);
+    var fuente = json.fase || json;
+    return normalizarFase_(fuente, indice, datos);
   });
 }
 
-/** Redacta o mejora un texto suelto (descripciones, criterios, etc.). */
-function asistirTexto(instruccion, textoBase, contexto) {
+/**
+ * Ayuda puntual para un campo suelto (tablas 1, 2 o el de observaciones).
+ * Devuelve texto plano, sin JSON, para pegarlo directo en el campo.
+ */
+function asistirCampo(campo, textoBase, contexto) {
   return envolver_(function () {
-    var prompt = 'Contexto de la planeación:\n' + JSON.stringify(contexto || {}) +
-      '\n\nTexto actual:\n"""' + (textoBase || '(vacío)') + '"""' +
-      '\n\nInstrucción del docente: ' + instruccion +
-      '\n\nDevuelve ÚNICAMENTE el texto reescrito, sin comillas ni explicaciones, en español de México.';
-    return llamarIA_(promptSistema_(), prompt, 1200, /* esperaJson= */ false);
+    var sistema = 'Eres docente de educación secundaria en México y conoces el Plan de Estudio 2022 ' +
+      'de la Nueva Escuela Mexicana. Respondes SIEMPRE en español, en texto plano, sin markdown, ' +
+      'sin viñetas con asteriscos y sin comentarios sobre tu propia respuesta.';
+
+    var usuario = 'Redacta o mejora el campo "' + limpiarTexto_(campo) + '" de una planeación didáctica.\n\n' +
+      'Contexto de la planeación:\n' + JSON.stringify(contexto || {}, null, 1) + '\n\n' +
+      'Texto actual (puede venir vacío):\n' + (limpiarTexto_(textoBase) || '(vacío)') + '\n\n' +
+      'Devuelve únicamente el texto final del campo. Si son varios elementos, uno por línea.';
+
+    return { texto: limpiarTexto_(llamarIA_(sistema, usuario, 1200, false)) };
   });
 }
 
-/** Prueba de conectividad desde el panel de configuración. */
 function probarConexionIA() {
   return envolver_(function () {
-    var r = llamarIA_('Responde en una sola línea.', 'Di exactamente: CONEXION_OK', 50, false);
-    return { respuesta: String(r).trim() };
+    var r = llamarIA_(
+      'Responde exactamente con la palabra CONEXION_OK y nada más.',
+      'Prueba de conexión.', 32, false
+    );
+    return { respuesta: limpiarTexto_(r) };
   });
 }
 
-/* ------------------------------------------------------------- Validación */
+/* ----------------------------------------------------------- Validaciones */
 
-function validarInsumos_(i) {
-  if (!i || !limpiarTexto_(i.tema)) throw new Error('Indica el tema principal del proyecto.');
-  if (!limpiarTexto_(i.nivel)) throw new Error('Selecciona el nivel educativo.');
-  var sesiones = Number(i.sesiones || 0);
-  var minutos = Number(i.minutosPorSesion || 0);
-  if (!sesiones || sesiones < 1) throw new Error('Indica cuántas sesiones tienes disponibles.');
-  if (!minutos || minutos < 10) throw new Error('Indica la duración de cada sesión (mínimo 10 minutos).');
-  if (sesiones > 120) throw new Error('El número de sesiones parece excesivo (máximo 120).');
+function validarEntradas_(datos, contenido) {
+  datos = datos || {};
+  contenido = contenido || {};
+  if (!limpiarTexto_(contenido.contenido) && !limpiarTexto_(contenido.temas)) {
+    throw new Error('Para usar la IA necesitas capturar al menos el Contenido o los Temas (tabla 2).');
+  }
+  if (!limpiarTexto_(datos.disciplina) && !limpiarTexto_(datos.campoFormativo)) {
+    throw new Error('Captura la Disciplina o el Campo formativo antes de generar con IA.');
+  }
 }
 
-/* ---------------------------------------------------------------- Prompts */
+/* --------------------------------------------------------------- Prompts */
 
 function promptSistema_() {
   return [
-    'Eres un asesor técnico pedagógico mexicano, experto en la Nueva Escuela Mexicana (NEM),',
-    'en los Programas Sintéticos 2022 y, de manera específica, en la metodología de',
-    'APRENDIZAJE BASADO EN PROYECTOS COMUNITARIOS.',
+    'Eres docente de educación SECUNDARIA en México y dominas el Plan de Estudio 2022 de la',
+    'Nueva Escuela Mexicana: campos formativos, ejes articuladores, procesos de desarrollo de',
+    'aprendizaje (PDA) y metodologías por proyectos (comunitario, STEAM, ABP, aprendizaje',
+    'servicio).',
     '',
-    'Reglas irrenunciables:',
-    '1. TODA actividad que propongas debe pertenecer a la metodología de Proyectos Comunitarios:',
-    '   parte de una problemática real y sentida de la comunidad, involucra a agentes externos',
-    '   (familias, vecinos, autoridades, oficios locales), produce evidencias tangibles y culmina',
-    '   en una intervención o servicio que devuelve algo a la comunidad.',
-    '   Nunca propongas actividades genéricas de libro de texto ni de otras metodologías (ABP',
-    '   escolar clásico, STEAM, indagación) salvo que queden subordinadas al proyecto comunitario.',
-    '2. Respeta las 3 fases y 11 momentos oficiales: Planeación (Identificación, Recuperación,',
-    '   Planificación); Acción (Acercamiento, Comprensión y producción, Reconocimiento, Concreción);',
-    '   Intervención (Integración, Difusión, Consideraciones, Avances).',
-    '3. Ajusta el lenguaje, la complejidad cognitiva y la autonomía exigida al nivel y grado indicados.',
-    '4. Usa EXCLUSIVAMENTE los recursos que el docente declara disponibles. Si algo no está,',
-    '   propón una alternativa con materiales de bajo costo o del entorno.',
-    '5. Considera las características del grupo (número de alumnos, diversidad, barreras para el',
-    '   aprendizaje) y propón adecuaciones concretas, no genéricas.',
-    '6. Escribe en español de México, con verbos en infinitivo para los títulos de actividad y',
-    '   redacción clara para el docente. Nada de relleno ni de frases motivacionales.',
-    '7. Responde SIEMPRE con un único objeto JSON válido. Sin texto antes ni después,',
-    '   sin cercos de código, sin comentarios.'
+    'Escribes planeaciones reales, aplicables en un aula con recursos limitados, con',
+    'actividades concretas que un adolescente de 12 a 15 años pueda hacer.',
+    '',
+    'Reglas duras:',
+    '- Respondes SIEMPRE en español de México y SIEMPRE en JSON válido, sin texto alrededor.',
+    '- Nada de markdown, asteriscos, numeración manual ni emojis dentro de los valores.',
+    '- Cada actividad se redacta en tercera persona y empieza con un verbo',
+    '  ("Realizan una lluvia de ideas sobre...", "El docente explica...").',
+    '- Los recursos son materiales reales y baratos, uno por elemento del arreglo.',
+    '- No inventes datos administrativos (escuela, CCT, docente, fechas): esos ya los tiene',
+    '  el formato.'
   ].join('\n');
 }
 
-function promptInsumos_(i) {
-  var porMomento = Number(i.actividadesPorMomento || 2);
-  var totalMin = Number(i.sesiones) * Number(i.minutosPorSesion);
+function promptProyecto_(datos, contenido, numFases, porFase, enfoque) {
+  var ejes = (contenido.ejes || []).join(', ') || 'los que mejor se articulen con el contenido';
+  var sesiones = Number(datos.sesiones) || 0;
 
-  return [
-    'Genera los insumos completos para una planeación didáctica por Proyectos Comunitarios.',
+  var partes = [
+    'Diseña un PROYECTO didáctico para educación secundaria con estos insumos.',
     '',
-    '## Datos del contexto',
-    '- Tema o problemática detonadora: ' + limpiarTexto_(i.tema),
-    '- Nivel educativo: ' + limpiarTexto_(i.nivel),
-    '- Grado / fase: ' + (limpiarTexto_(i.grado) || 'no especificado'),
-    '- Campo(s) formativo(s) prioritario(s): ' + (limpiarTexto_(i.campoFormativo) || 'los que mejor articulen el tema'),
-    '- Características del grupo y del salón: ' + (limpiarTexto_(i.caracteristicasGrupo) || 'grupo estándar'),
-    '- Recursos realmente disponibles: ' + (limpiarTexto_(i.recursos) || 'materiales básicos de papelería'),
-    '- Contexto comunitario: ' + (limpiarTexto_(i.contextoComunitario) || 'no especificado, infiérelo con prudencia'),
-    '- Tiempo total: ' + i.sesiones + ' sesiones de ' + i.minutosPorSesion + ' minutos (' + totalMin + ' minutos en total)' +
-      (i.semanas ? ', distribuidas en ' + i.semanas + ' semanas.' : '.'),
+    '## Datos del grupo',
+    '- Nivel escolar: ' + (limpiarTexto_(datos.nivel) || 'Secundaria'),
+    '- Grado y grupo: ' + (limpiarTexto_(datos.gradoGrupo) || 'sin especificar'),
+    '- Campo formativo: ' + (limpiarTexto_(datos.campoFormativo) || 'Saberes y pensamiento científico'),
+    '- Disciplina: ' + (limpiarTexto_(datos.disciplina) || 'sin especificar'),
+    '- Semanas: ' + (limpiarTexto_(datos.semanas) || 'sin especificar'),
+    '- Sesiones totales disponibles: ' + (sesiones || 'sin especificar'),
+    '- Tiempo por sesión: ' + (limpiarTexto_(datos.tiempoSesion) || 'sin especificar'),
+    '- Periodo: ' + (limpiarTexto_(datos.periodo) || 'sin especificar'),
     '',
-    '## Qué debes producir',
-    '1. Una explicación disciplinar del tema para el docente (no para el alumno): qué es, por qué',
-    '   importa en esta comunidad, conceptos clave y errores frecuentes.',
-    '2. Exactamente ' + porMomento + ' actividades por cada uno de los 11 momentos.',
-    '   Cada actividad debe indicar una duración sugerida en minutos, coherente con sesiones de ' +
-      i.minutosPorSesion + ' minutos.',
-    '3. Evaluación formativa con instrumentos concretos y criterios observables.',
-    '4. Lista consolidada de recursos y de adecuaciones para la diversidad del grupo.',
+    '## Contenido curricular (tabla 2)',
+    '- Contenido: ' + limpiarTexto_(contenido.contenido),
+    '- Temas: ' + limpiarTexto_(contenido.temas),
+    '- Procesos de desarrollo de aprendizaje: ' + limpiarTexto_(contenido.pda),
+    '- Ejes articuladores a atender: ' + ejes,
+    '- Campos formativos con que se vincula: ' + limpiarTexto_(contenido.camposVinculados),
+    '- Metodología: ' + (limpiarTexto_(contenido.metodologia) || 'elige la más pertinente'),
+    '- Técnicas: ' + limpiarTexto_(contenido.tecnicas),
+    '- Evaluación formativa: ' + limpiarTexto_(contenido.evaluacionFormativa),
+    '- Evaluación sumativa: ' + limpiarTexto_(contenido.evaluacionSumativa)
+  ];
+
+  if (limpiarTexto_(enfoque)) {
+    partes.push('', '## Indicación adicional del docente', limpiarTexto_(enfoque));
+  }
+
+  partes.push(
+    '',
+    '## Lo que debes producir',
+    'Un proyecto con ' + numFases + ' fases y aproximadamente ' + porFase + ' actividades por fase.',
+    sesiones
+      ? 'Reparte las ' + sesiones + ' sesiones entre las fases; la suma debe dar exactamente ' + sesiones + '.'
+      : 'Estima un número razonable de sesiones por fase.',
     '',
     '## Formato de salida (JSON estricto)',
     '{',
-    '  "titulo_proyecto": "nombre atractivo y situado del proyecto",',
-    '  "problematica": "la problemática comunitaria en una oración",',
-    '  "producto_final": "el producto o servicio que se entrega a la comunidad",',
-    '  "explicacion": {',
-    '    "resumen": "párrafo de 80-120 palabras",',
-    '    "relevancia_comunitaria": "párrafo de 60-90 palabras",',
-    '    "conceptos_clave": [{"titulo":"...","texto":"2-3 oraciones"}],',
-    '    "errores_frecuentes": ["..."]',
+    '  "proyecto": {',
+    '    "nombre": "título breve y atractivo del proyecto",',
+    '    "problematica": "problemática o tema de interés de los alumnos, en 1 o 2 frases",',
+    '    "proposito": "propósito del proyecto, redactado con verbo en infinitivo",',
+    '    "productoFinal": "producto final esperado, concreto y tangible"',
     '  },',
-    '  "campos_formativos": ["..."],',
-    '  "ejes_articuladores": ["..."],',
-    '  "contenidos": ["contenido del programa sintético"],',
-    '  "pda": ["proceso de desarrollo de aprendizaje redactado como en el programa"],',
-    '  "momentos": [',
+    '  "fases": [',
     '    {',
-    '      "fase": "Planeación",',
-    '      "momento": "Identificación",',
-    '      "proposito": "para qué sirve este momento en ESTE proyecto",',
-    '      "actividades": [',
-    '        {',
-    '          "titulo": "verbo en infinitivo + objeto",',
-    '          "descripcion": "3-5 oraciones con la secuencia concreta de lo que hace el grupo",',
-    '          "consigna_alumno": "lo que el docente dice literalmente al grupo",',
-    '          "organizacion": "individual | binas | equipos | grupal | comunidad",',
-    '          "recursos": ["..."],',
-    '          "evidencia": "producto observable de esta actividad",',
-    '          "participacion_comunitaria": "quién de la comunidad participa y cómo, o la palabra ninguna",',
-    '          "duracion_min": 30',
-    '        }',
-    '      ]',
+    '      "fase": "Fase 1. Nombre de la fase",',
+    '      "construir": "encabezado de la columna de actividades para esta fase",',
+    '      "actividades": ["actividad 1", "actividad 2"],',
+    '      "recursos": ["material 1", "material 2"],',
+    '      "sesiones": 6',
     '    }',
-    '  ],',
-    '  "evaluacion": {',
-    '    "enfoque": "1-2 oraciones",',
-    '    "instrumentos": [{"nombre":"...","momento_de_uso":"...","descripcion":"..."}],',
-    '    "criterios": ["criterio observable"],',
-    '    "indicadores_logro": ["indicador redactado en tercera persona"]',
-    '  },',
-    '  "recursos_consolidados": ["..."],',
-    '  "adecuaciones": [{"situacion":"...","ajuste":"..."}],',
-    '  "vinculacion_familias": "cómo se involucra a las familias"',
+    '  ]',
     '}',
     '',
-    'Incluye los 11 momentos, en el orden indicado, sin omitir ninguno.'
-  ].join('\n');
+    'El campo "construir" es el título de la columna donde se describe el trabajo de la fase',
+    '(por ejemplo "Selección del tema", "Diseño de la investigación", "Representación",',
+    '"Demostración de lo aprendido", "Metacognición"). Cámbialo según lo que toque hacer.',
+    'Devuelve solo el JSON.'
+  );
+
+  return partes.join('\n');
 }
 
-function promptRegenerarMomento_(i, fase, momento, actuales) {
-  var yaPropuestas = (actuales || []).map(function (a) {
-    return '- ' + (a && a.titulo ? a.titulo : a);
-  }).join('\n') || '- (ninguna)';
+function promptFase_(datos, contenido, proyecto, fases, indice) {
+  var actual = fases[indice] || {};
+  var otras = fases
+    .filter(function (f, i) { return i !== indice; })
+    .map(function (f, i) {
+      return '- ' + limpiarTexto_(f.fase) + ': ' + (f.actividades || []).slice(0, 4).join(' / ');
+    })
+    .join('\n');
 
   return [
-    'Para el proyecto comunitario sobre "' + limpiarTexto_(i.tema) + '" (' + limpiarTexto_(i.nivel) +
-      (i.grado ? ', ' + i.grado : '') + '),',
-    'genera 3 actividades NUEVAS y distintas para la fase "' + fase + '", momento "' + momento + '".',
+    'Vuelve a redactar UNA SOLA fase de un proyecto de secundaria, con actividades distintas',
+    'a las que ya tiene y sin repetir lo que hacen las demás fases.',
     '',
-    'Recursos disponibles: ' + (limpiarTexto_(i.recursos) || 'básicos'),
-    'Características del grupo: ' + (limpiarTexto_(i.caracteristicasGrupo) || 'grupo estándar'),
-    'Duración de cada sesión: ' + i.minutosPorSesion + ' minutos.',
+    '## Proyecto',
+    '- Nombre: ' + limpiarTexto_((proyecto || {}).nombre),
+    '- Problemática: ' + limpiarTexto_((proyecto || {}).problematica),
+    '- Propósito: ' + limpiarTexto_((proyecto || {}).proposito),
+    '- Producto final: ' + limpiarTexto_((proyecto || {}).productoFinal),
+    '- Contenido: ' + limpiarTexto_(contenido.contenido),
+    '- Disciplina: ' + limpiarTexto_(datos.disciplina),
+    '- Grado y grupo: ' + limpiarTexto_(datos.gradoGrupo),
     '',
-    'Estas actividades YA fueron propuestas, no las repitas ni las parafrasees:',
-    yaPropuestas,
+    '## Fase a rehacer',
+    '- Nombre: ' + limpiarTexto_(actual.fase),
+    '- Encabezado de columna: ' + limpiarTexto_(actual.construir),
+    '- Sesiones asignadas: ' + (actual.sesiones || 'las que estimes'),
+    '- Actividades actuales (NO las repitas):',
+    (actual.actividades || []).map(function (a) { return '  · ' + a; }).join('\n') || '  (ninguna)',
     '',
-    'Responde solo con:',
-    '{"actividades":[{"titulo":"...","descripcion":"...","consigna_alumno":"...",',
-    '"organizacion":"...","recursos":["..."],"evidencia":"...",',
-    '"participacion_comunitaria":"...","duracion_min":30}]}'
+    '## Las demás fases (evita duplicarlas)',
+    otras || '(no hay otras fases)',
+    '',
+    '## Formato de salida (JSON estricto)',
+    '{ "fase": { "fase": "...", "construir": "...", "actividades": ["..."],',
+    '            "recursos": ["..."], "sesiones": 4 } }',
+    'Devuelve solo el JSON.'
   ].join('\n');
 }
 
-/* --------------------------------------------------------- Normalización */
+/* ---------------------------------------------------------- Normalización */
 
-function normalizarPropuesta_(json, insumos) {
-  var momentosIA = Array.isArray(json.momentos) ? json.momentos : [];
-  var indice = {};
-  momentosIA.forEach(function (m) {
-    indice[clave_(m.fase, m.momento)] = m;
+function normalizarPropuesta_(json, datos, contenido, numFases) {
+  var p = json.proyecto || json || {};
+  var fasesIA = json.fases || json.fase || [];
+  if (!Array.isArray(fasesIA)) fasesIA = [fasesIA];
+
+  var fases = fasesIA.slice(0, numFases).map(function (f, i) {
+    return normalizarFase_(f, i, datos);
   });
 
-  var momentos = [];
-  FASES_PROYECTO_COMUNITARIO.forEach(function (f) {
-    f.momentos.forEach(function (nombreMomento) {
-      var origen = indice[clave_(f.fase, nombreMomento)] || {};
-      var acts = Array.isArray(origen.actividades) ? origen.actividades : [];
-      momentos.push({
-        fase: f.fase,
-        momento: nombreMomento,
-        proposito: limpiarTexto_(origen.proposito),
-        actividades: acts.map(function (a, k) {
-          return normalizarActividad_(a, f.fase, nombreMomento, k, insumos);
-        })
-      });
-    });
-  });
+  // Si la IA devolvió menos fases de las pedidas, se completan con el andamiaje.
+  while (fases.length < numFases) {
+    fases.push(normalizarFase_({}, fases.length, datos));
+  }
 
-  var exp = json.explicacion || {};
-  var ev = json.evaluacion || {};
+  var totalSesiones = Number(datos.sesiones) || 0;
+  if (totalSesiones > 0) fases = repartirSesiones_(fases, totalSesiones);
 
   return {
-    id: idCorto_(),
-    creado: new Date().toISOString(),
-    insumos: insumos,
-    tituloProyecto: limpiarTexto_(json.titulo_proyecto) || limpiarTexto_(insumos.tema),
-    problematica: limpiarTexto_(json.problematica),
-    productoFinal: limpiarTexto_(json.producto_final),
-    explicacion: {
-      resumen: limpiarTexto_(exp.resumen),
-      relevanciaComunitaria: limpiarTexto_(exp.relevancia_comunitaria),
-      conceptosClave: (exp.conceptos_clave || []).map(function (c) {
-        return { titulo: limpiarTexto_(c.titulo), texto: limpiarTexto_(c.texto) };
-      }),
-      erroresFrecuentes: (exp.errores_frecuentes || []).map(limpiarTexto_)
+    proyecto: {
+      nombre: limpiarTexto_(p.nombre) || 'Proyecto de ' + (limpiarTexto_(datos.disciplina) || 'la asignatura'),
+      problematica: limpiarTexto_(p.problematica),
+      proposito: limpiarTexto_(p.proposito),
+      productoFinal: limpiarTexto_(p.productoFinal)
     },
-    camposFormativos: (json.campos_formativos || []).map(limpiarTexto_),
-    ejesArticuladores: (json.ejes_articuladores || []).map(limpiarTexto_),
-    contenidos: (json.contenidos || []).map(limpiarTexto_),
-    pda: (json.pda || []).map(limpiarTexto_),
-    momentos: momentos,
-    evaluacion: {
-      enfoque: limpiarTexto_(ev.enfoque),
-      instrumentos: (ev.instrumentos || []).map(function (x) {
-        return {
-          nombre: limpiarTexto_(x.nombre),
-          momentoDeUso: limpiarTexto_(x.momento_de_uso),
-          descripcion: limpiarTexto_(x.descripcion)
-        };
-      }),
-      criterios: (ev.criterios || []).map(limpiarTexto_),
-      indicadoresLogro: (ev.indicadores_logro || []).map(limpiarTexto_)
-    },
-    recursosConsolidados: (json.recursos_consolidados || []).map(limpiarTexto_),
-    adecuaciones: (json.adecuaciones || []).map(function (a) {
-      return { situacion: limpiarTexto_(a.situacion), ajuste: limpiarTexto_(a.ajuste) };
-    }),
-    vinculacionFamilias: limpiarTexto_(json.vinculacion_familias)
+    fases: fases,
+    generadoEn: fechaLegible_(new Date())
   };
 }
 
-function normalizarActividad_(a, fase, momento, indice, insumos) {
-  a = a || {};
-  var dur = Number(a.duracion_min || a.duracion || 0);
-  if (!dur || dur < 5) dur = Math.min(Number(insumos.minutosPorSesion || 50), 50);
+function normalizarFase_(f, indice, datos) {
+  f = f || {};
+  var sugerida = FASES_SUGERIDAS[indice] || {
+    fase: 'Fase ' + (indice + 1) + '.',
+    construir: 'Actividades'
+  };
+
   return {
-    id: 'act_' + idCorto_(),
-    fase: fase,
-    momento: momento,
-    titulo: limpiarTexto_(a.titulo) || (momento + ' · actividad ' + (indice + 1)),
-    descripcion: limpiarTexto_(a.descripcion),
-    consignaAlumno: limpiarTexto_(a.consigna_alumno),
-    organizacion: limpiarTexto_(a.organizacion) || 'equipos',
-    recursos: (a.recursos || []).map(limpiarTexto_),
-    evidencia: limpiarTexto_(a.evidencia),
-    participacionComunitaria: limpiarTexto_(a.participacion_comunitaria),
-    duracionSugerida: Math.round(dur),
-    duracionAsignada: Math.round(dur),
-    seleccionada: true
+    numero: indice + 1,
+    fase: limpiarTexto_(f.fase) || sugerida.fase,
+    construir: limpiarTexto_(f.construir) || sugerida.construir,
+    actividades: aLista_(f.actividades),
+    recursos: aLista_(f.recursos),
+    sesiones: Number(f.sesiones) || 0
   };
 }
 
-/** Normaliza fase+momento para emparejar lo que devuelve la IA con el andamiaje. */
-function clave_(fase, momento) {
-  var texto = limpiarTexto_(fase) + '||' + limpiarTexto_(momento);
-  return texto.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+/** Acepta arreglo, texto con saltos de línea o texto con viñetas. */
+function aLista_(valor) {
+  if (!valor) return [];
+  var lista = Array.isArray(valor) ? valor : String(valor).split('\n');
+  return lista
+    .map(function (t) { return limpiarTexto_(t).replace(/^[-·•*\d.)\s]+/, '').trim(); })
+    .filter(function (t) { return t.length > 0; });
 }
 
 /* --------------------------------------------- Adaptador de proveedores IA */
@@ -322,7 +308,8 @@ function llamarIA_(sistema, usuario, maxTokens, esperaJson) {
   var apiKey = sp.getProperty(K.API_KEY);
 
   if (!apiKey) {
-    throw new Error('No hay API key configurada. Ábrela en el panel de Configuración y guárdala.');
+    throw new Error('No hay API key configurada. La IA es opcional: puedes escribir la ' +
+      'planeación a mano, o abrir Configuración y guardar una clave.');
   }
   if (esperaJson === undefined) esperaJson = true;
 
@@ -438,7 +425,8 @@ function fetchConReintentos_(url, opciones, intentos) {
     var e = JSON.parse(ultimo.getContentText());
     detalle = (e.error && (e.error.message || e.error.type)) || ultimo.getContentText().substring(0, 300);
   } catch (err) {
-    detalle = ultimo.getContentText().substring(0, 300);
+    detalle = ultimo ? ultimo.getContentText().substring(0, 300) : 'sin respuesta';
   }
-  throw new Error('Error ' + ultimo.getResponseCode() + ' del proveedor de IA: ' + detalle);
+  throw new Error('Error ' + (ultimo ? ultimo.getResponseCode() : '?') +
+    ' del proveedor de IA: ' + detalle);
 }
